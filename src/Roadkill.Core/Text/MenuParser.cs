@@ -1,13 +1,14 @@
-﻿using System.Web;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Web;
 using System.Web.Mvc;
-using AngleSharp.Dom;
-using AngleSharp.Dom.Html;
-using AngleSharp.Extensions;
-using AngleSharp.Parser.Html;
+using HtmlAgilityPack;
 using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Converters;
-using Roadkill.Core.Database.Repositories;
+using Roadkill.Core.Database;
 using Roadkill.Core.Localization;
 
 namespace Roadkill.Core.Text
@@ -21,15 +22,15 @@ namespace Roadkill.Core.Text
 		private static readonly string MANAGEFILES_TOKEN = "%managefiles%";
 		private static readonly string SITESETTINGS_TOKEN = "%sitesettings%";
 
-		private readonly ISettingsRepository _settingsRepository;
-		private readonly SiteCache _siteCache;
-		private readonly MarkupConverter _markupConverter;
-		private readonly IUserContext _userContext;
+		private IRepository _repository;
+		private SiteCache _siteCache;
+		private MarkupConverter _markupConverter;
+		private IUserContext _userContext;
 
-		public MenuParser(MarkupConverter markupConverter, ISettingsRepository settingsRepository, SiteCache siteCache, IUserContext userContext)
+		public MenuParser(MarkupConverter markupConverter, IRepository repository, SiteCache siteCache, IUserContext userContext)
 		{
 			_markupConverter = markupConverter;
-			_settingsRepository = settingsRepository;
+			_repository = repository;
 			_siteCache = siteCache;
 			_userContext = userContext;
 		}
@@ -57,7 +58,7 @@ namespace Roadkill.Core.Text
 			// If the cache is empty, populate the right menu option
 			if (string.IsNullOrEmpty(html))
 			{
-				SiteSettings siteSettings = _settingsRepository.GetSiteSettings();
+				SiteSettings siteSettings = _repository.GetSiteSettings();
 				html = siteSettings.MenuMarkup;
 
 				html = _markupConverter.ParseMenuMarkup(html);
@@ -135,15 +136,53 @@ namespace Roadkill.Core.Text
 			html = html.Replace(MANAGEFILES_TOKEN, manageFiles);
 			html = html.Replace(SITESETTINGS_TOKEN, siteSettings);
 
-			var parser = new HtmlParser();
-			IHtmlDocument document = parser.Parse(html);
+			HtmlDocument document = new HtmlDocument();
+			document.LoadHtml(html);
 
-			RemoveParagraphTags(document);
-			RemoveEmptyLiTags(document);
-			RemoveEmptyUlTags(document);
+			//
+			// Remove P tags, and empty ul and li tags
+			//
+			HtmlNodeCollection paragraphNodes = document.DocumentNode.SelectNodes("//p");
+			if (paragraphNodes != null)
+			{
+				foreach (HtmlNode node in paragraphNodes)
+				{
+					var parentNode = node.ParentNode;
+					var childNodes = node.ChildNodes;
+
+					node.Remove();
+					parentNode.AppendChildren(childNodes);
+				}
+			}
+
+			HtmlNodeCollection liNodes = document.DocumentNode.SelectNodes("//li");
+			if (liNodes != null)
+			{
+				foreach (HtmlNode node in liNodes)
+				{
+					if (string.IsNullOrEmpty(node.InnerText) || string.IsNullOrEmpty(node.InnerText.Trim()) ||
+						string.IsNullOrEmpty(node.InnerHtml) || string.IsNullOrEmpty(node.InnerHtml.Trim()))
+					{
+						node.Remove();
+					}
+				}
+			}
+
+			HtmlNodeCollection ulNodes = document.DocumentNode.SelectNodes("//ul");
+			if (ulNodes != null)
+			{
+				foreach (HtmlNode node in ulNodes)
+				{
+					if (string.IsNullOrEmpty(node.InnerText) || string.IsNullOrEmpty(node.InnerText.Trim()) ||
+						string.IsNullOrEmpty(node.InnerHtml) || string.IsNullOrEmpty(node.InnerHtml.Trim()))
+					{
+						node.Remove();
+					}
+				}
+			}
 
 			// Clean up newlines
-			html = document.QuerySelector("body").InnerHtml;
+			html = document.DocumentNode.InnerHtml;
 			html = html.Trim();
 			html = html.Replace("\n", "");
 			html = html.Replace("\r", "");
@@ -151,65 +190,9 @@ namespace Roadkill.Core.Text
 			return html;
 		}
 
-		private static void RemoveEmptyUlTags(IHtmlDocument document)
-		{
-			IHtmlCollection<IElement> ulNodes = document.QuerySelectorAll("ul");
-			if (ulNodes != null)
-			{
-				foreach (IElement element in ulNodes)
-				{
-					if (string.IsNullOrEmpty(element.TextContent) || string.IsNullOrEmpty(element.TextContent.Trim()) ||
-					    string.IsNullOrEmpty(element.InnerHtml) || string.IsNullOrEmpty(element.InnerHtml.Trim()))
-					{
-						element.Remove();
-					}
-				}
-			}
-		}
-
-		private static void RemoveEmptyLiTags(IHtmlDocument document)
-		{
-			IHtmlCollection<IElement> liNodes = document.QuerySelectorAll("li");
-			if (liNodes != null)
-			{
-				foreach (IElement element in liNodes)
-				{
-					if (string.IsNullOrEmpty(element.TextContent) || string.IsNullOrEmpty(element.TextContent.Trim()) ||
-					    string.IsNullOrEmpty(element.InnerHtml) || string.IsNullOrEmpty(element.InnerHtml.Trim()))
-					{
-						element.Remove();
-					}
-				}
-			}
-		}
-
-		// Remove all paragraph tags and put their child nodes into the P tag's parent.
-		private static void RemoveParagraphTags(IHtmlDocument document)
-		{
-			IHtmlCollection<IElement> paragraphNodes = document.QuerySelectorAll("p");
-			if (paragraphNodes != null)
-			{
-				foreach (IElement element in paragraphNodes)
-				{
-					IElement parentNode = element.ParentElement;
-					INodeList childNodes = element.ChildNodes;
-					element.Remove();
-
-					foreach (INode node in childNodes)
-					{
-						IElement childElement = node as IElement;
-						if (childElement != null)
-							parentNode.InnerHtml += childElement.OuterHtml;
-						else
-							parentNode.InnerHtml += node.TextContent;
-					}
-				}
-			}
-		}
-
 		private string CreateAnchorTag(string link, string text)
 		{
-			return $"<a href=\"{link}\">{text}</a>";
+			return string.Format("<a href=\"{0}\">{1}</a>", link, text);
 		}
 	}
 }

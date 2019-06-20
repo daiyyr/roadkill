@@ -11,7 +11,7 @@
 			successTitle: "@SiteStrings.Shared_Success",
 			successMessage: "@SiteStrings.Attachments_Folder_Success",
 			failureTitle: "@SiteStrings.Shared_Failure",
-			failureMessage: "@SiteStrings.Attachments_Folder_Failure"
+			failureMessage: "@SiteStrings.Attachments_Folder_Failure",
 		};
 
 		var wizard = new Roadkill.Web.Installer.InstallWizard();
@@ -31,7 +31,7 @@
 	@Html.HiddenFor(h => h.AdminRoleName)
 	@Html.HiddenFor(h => h.AllowUserSignup)
 	@Html.HiddenFor(h => h.ConnectionString)
-	@Html.HiddenFor(h => h.DatabaseName)
+	@Html.HiddenFor(h => h.DataStoreTypeName)
 	@Html.HiddenFor(h => h.EditorRoleName)
 	@Html.HiddenFor(h => h.IsRecaptchaEnabled)
 	@Html.HiddenFor(h => h.LdapConnectionString)
@@ -126,7 +126,7 @@
 			</label>
 		</div>
 
-		<p>@SiteStrings.SiteSettings_Configuration_BrowserCaching_Help</p>
+		<p>@SiteStrings.SiteSettings_Configuration_BrowserCaching_Help/p>
 	</fieldset>
 </form>
 

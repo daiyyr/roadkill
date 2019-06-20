@@ -2,22 +2,23 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Web.Http;
+using System.Text;
 using System.Web.Mvc;
+using System.Web.Routing;
 using Moq;
 using NUnit.Framework;
 using Roadkill.Core;
 using Roadkill.Core.Configuration;
-using Roadkill.Core.Database;
-using Roadkill.Core.DependencyResolution;
+using Roadkill.Core.Converters;
 using Roadkill.Core.Extensions;
+using Roadkill.Core.Mvc;
 using Roadkill.Core.Mvc.Controllers;
 using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Security;
 using Roadkill.Core.Services;
-using Roadkill.Tests.Unit.StubsAndMocks;
-using Roadkill.Tests.Unit.StubsAndMocks.Mvc;
+using StructureMap;
 
-namespace Roadkill.Tests.Unit.Extensions
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -27,9 +28,12 @@ namespace Roadkill.Tests.Unit.Extensions
 		private MocksAndStubsContainer _container;
 		private ApplicationSettings _applicationSettings;
 		private IUserContext _context;
+		private RepositoryMock _repository;
 		private UserServiceMock _userService;
 		private PageService _pageService;
+		private PageHistoryService _historyService;
 		private SettingsService _settingsService;
+		private PluginFactoryMock _pluginFactory;
 		private WikiController _wikiController;
 		private HtmlHelper _htmlHelper;
 		private ViewContext _viewContext;
@@ -42,8 +46,11 @@ namespace Roadkill.Tests.Unit.Extensions
 
 			_applicationSettings = _container.ApplicationSettings;
 			_context = _container.UserContext;
+			_repository = _container.Repository;
+			_pluginFactory = _container.PluginFactory;
 			_settingsService = _container.SettingsService;
 			_userService = _container.UserService;
+			_historyService = _container.HistoryService;
 			_pageService = _container.PageService;
 
 			_wikiController = new WikiController(_applicationSettings, _userService, _pageService, _context, _settingsService);
@@ -59,7 +66,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void loginstatus_should_contain_link_and_username_in_text_when_user_is_loggedin()
+		public void LoginStatus_Should_Contain_Link_And_Username_In_Text_When_User_Is_LoggedIn()
 		{
 			// Arrange
 			_context.CurrentUser = "editor";
@@ -73,7 +80,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void loginstatus_should_contain_login_link_and_guest_in_text_when_user_is_anonymous()
+		public void LoginStatus_Should_Contain_Login_Link_And_Guest_In_Text_When_User_Is_Anonymous()
 		{
 			// Arrange
 			_context.CurrentUser = "";
@@ -87,7 +94,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void settingslink_should_render_link_html_when_logged_in_as_admin()
+		public void SettingsLink_Should_Render_Link_Html_When_Logged_In_As_Admin()
 		{
 			// Arrange
 			_userService.AddUser("admin@localhost", "admin", "password", true, true);
@@ -104,7 +111,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void settingslink_should_not_render_html_when_logged_in_as_editor()
+		public void SettingsLink_Should_Not_Render_Html_When_Logged_In_As_Editor()
 		{
 			// Arrange
 			_userService.AddUser("editor@localhost", "admin", "password", false, true);
@@ -121,7 +128,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void settingslink_should_not_render_html_when_anonymous_user()
+		public void SettingsLink_Should_Not_Render_Html_When_Anonymous_User()
 		{
 			// Arrange
 			_context.CurrentUser = "";
@@ -135,7 +142,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void filemanagerlink_should_render_link_html_when_logged_in_as_admin()
+		public void FileManagerLink_Should_Render_Link_Html_When_Logged_In_As_Admin()
 		{
 			// Arrange
 			_userService.AddUser("admin@localhost", "admin", "password", true, true);
@@ -152,7 +159,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void filemanagerlink_should_render_link_html_when_logged_in_as_editor()
+		public void FileManagerLink_Should_Render_Link_Html_When_Logged_In_As_Editor()
 		{
 			// Arrange
 			_userService.AddUser("editor@localhost", "editor", "password", false, true);
@@ -169,7 +176,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void filemanagerlink_should_not_render_html_when_anonymous_user()
+		public void FileManagerLink_Should_Not_Render_Html_When_Anonymous_User()
 		{
 			// Arrange
 			_context.CurrentUser = "";
@@ -183,7 +190,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void loginlink_should_render_login_html_when_anonymous_user()
+		public void LoginLink_Should_Render_Login_Html_When_Anonymous_User()
 		{
 			// Arrange
 			_context.CurrentUser = "";
@@ -197,7 +204,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void loginlink_should_render_logout_html_when_logged_in_as_editor()
+		public void LoginLink_Should_Render_Logout_Html_When_Logged_In_As_Editor()
 		{
 			// Arrange
 			_userService.AddUser("editor@localhost", "editor", "password", false, true);
@@ -214,7 +221,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void loginlink_should_return_empty_string_when_windows_auth_is_enabled()
+		public void LoginLink_Should_Return_Empty_String_When_Windows_Auth_Is_Enabled()
 		{
 			// Arrange
 			_applicationSettings.UseWindowsAuthentication = true;
@@ -228,7 +235,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void newpagelink_should_render_link_html_when_logged_in_as_admin()
+		public void NewPageLink_Should_Render_Link_Html_When_Logged_In_As_Admin()
 		{
 			// Arrange
 			_userService.AddUser("admin@localhost", "admin", "password", true, true);
@@ -245,7 +252,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void newpagelink_should_render_link_html_when_logged_in_as_editor()
+		public void NewPageLink_Should_Render_Link_Html_When_Logged_In_As_Editor()
 		{
 			// Arrange
 			_userService.AddUser("editor@localhost", "editor", "password", false, true);
@@ -262,7 +269,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void newpagelink_should_not_render_html_when_anonymous_user()
+		public void NewPageLink_Should_Not_Render_Html_When_Anonymous_User()
 		{
 			// Arrange
 			_context.CurrentUser = "";
@@ -276,7 +283,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void mainpagelink_should_render_html_with_home_link()
+		public void MainPageLink_Should_Render_Html_With_Home_Link()
 		{
 			// Arrange
 			string expectedHtml = "@<a href=\"/\">the fun starts here</a>~";
@@ -290,27 +297,31 @@ namespace Roadkill.Tests.Unit.Extensions
 
 
 		[Test]
-		public void pagelink_should_render_html_link_with_page_title_and_html_attributes()
+		public void PageLink_Should_Render_Html_Link_With_Page_Title_And_Html_Attributes()
 		{
 			// Arrange
 			_pageService.AddPage(new PageViewModel() { Id = 7, Title = "Crispy Pancake Recipe" });
+			ObjectFactory.Configure(x => x.For<IPageService>().Use(_pageService)); // the extension uses bastard injection
+
 			string expectedHtml = "@<a data-merry=\"xmas\" href=\"/wiki/1/crispy%20pancake%20recipe\">captains log</a>~"; // the url will always be /wiki/1 because of the mock url setup
 
 			// Act
-			string actualHtml = _htmlHelper.PageLink("captains log", "Crispy Pancake Recipe", new { data_merry = "xmas" }, "@", "~", _pageService).ToString();
+			string actualHtml = _htmlHelper.PageLink("captains log", "Crispy Pancake Recipe", new { data_merry = "xmas" }, "@", "~").ToString();
 
 			// Assert
 			Assert.That(actualHtml, Is.EqualTo(expectedHtml));
 		}
 
 		[Test]
-		public void pagelink_should_render_html_with_no_link_when_page_does_not_exist()
+		public void PageLink_Should_Render_Html_With_No_Link_When_Page_Does_Not_Exist()
 		{
 			// Arrange
+			ObjectFactory.Configure(x => x.For<IPageService>().Use(_pageService)); // the extension uses bastard injection
+
 			string expectedHtml = "captains log"; // the url will always be /wiki/1 because of the mock url setup
 
 			// Act
-			string actualHtml = _htmlHelper.PageLink("captains log", "Random page that doesnt exist", new { data_merry = "xmas" }, "@", "~", _pageService).ToString();
+			string actualHtml = _htmlHelper.PageLink("captains log", "Random page that doesnt exist", new { data_merry = "xmas" }, "@", "~").ToString();
 
 			// Assert
 			Assert.That(actualHtml, Is.EqualTo(expectedHtml));

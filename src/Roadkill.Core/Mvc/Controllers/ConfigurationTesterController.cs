@@ -1,11 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using Roadkill.Core.Attachments;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
+using Roadkill.Core.DI;
 using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Core.Security;
 using Roadkill.Core.Security.Windows;
+using Roadkill.Core.Services;
 
 namespace Roadkill.Core.Mvc.Controllers
 {
@@ -15,29 +22,17 @@ namespace Roadkill.Core.Mvc.Controllers
 	/// </summary>
 	public class ConfigurationTesterController : Controller // Don't inherit from ControllerBase, as it checks if Installed is true.
 	{
-		private readonly ApplicationSettings _applicationSettings;
-		private readonly IUserContext _userContext;
-		private readonly ConfigReaderWriter _configReaderWriter;
-		private readonly IActiveDirectoryProvider _activeDirectoryProvider;
-		private readonly UserServiceBase _userService;
-		private readonly IDatabaseTester _databaseTester;
+		private ApplicationSettings _applicationSettings;
+		private IUserContext _userContext;
+		private ConfigReaderWriter _configReaderWriter;
+		private IActiveDirectoryProvider _activeDirectoryProvider;
 
-		public ConfigurationTesterController(ApplicationSettings appSettings, IUserContext userContext, ConfigReaderWriter configReaderWriter, 
-			IActiveDirectoryProvider activeDirectoryProvider, UserServiceBase userService, IDatabaseTester databaseTester) 
+		public ConfigurationTesterController(ApplicationSettings appSettings, IUserContext userContext, ConfigReaderWriter configReaderWriter, IActiveDirectoryProvider activeDirectoryProvider) 
 		{
 			_applicationSettings = appSettings;
 			_userContext = userContext;
 			_configReaderWriter = configReaderWriter;
 			_activeDirectoryProvider = activeDirectoryProvider;
-			_userService = userService;
-			_databaseTester = databaseTester;
-		}
-
-		protected override void OnActionExecuting(ActionExecutingContext filterContext)
-		{
-			_userContext.CurrentUser = _userService.GetLoggedInUserName(HttpContext);
-			ViewBag.Context = _userContext;
-			ViewBag.Config = _applicationSettings;
 		}
 
 		/// <summary>
@@ -47,7 +42,7 @@ namespace Roadkill.Core.Mvc.Controllers
 		/// <returns>Returns a <see cref="TestResult"/> containing information about any errors.</returns>
 		public ActionResult TestLdap(string connectionString, string username, string password, string groupName)
 		{
-			if (IsInstalledAndUserIsNotAdmin())
+			if (InstalledAndUserIsNotAdmin())
 				return Content("");
 
 			string errors = _activeDirectoryProvider.TestLdapConnection(connectionString, username, password, groupName);
@@ -60,7 +55,7 @@ namespace Roadkill.Core.Mvc.Controllers
 		/// <returns>Returns a <see cref="TestResult"/> containing information about any errors.</returns>
 		public ActionResult TestWebConfig()
 		{
-			if (IsInstalledAndUserIsNotAdmin())
+			if (InstalledAndUserIsNotAdmin())
 				return Content("");
 
 			string errors = _configReaderWriter.TestSaveWebConfig();
@@ -74,7 +69,7 @@ namespace Roadkill.Core.Mvc.Controllers
 		/// <returns>Returns a <see cref="TestResult"/> containing information about any errors.</returns>
 		public ActionResult TestAttachments(string folder)
 		{
-			if (IsInstalledAndUserIsNotAdmin())
+			if (InstalledAndUserIsNotAdmin())
 				return Content("");
 
 			string errors = AttachmentPathUtil.AttachmentFolderExistsAndWriteable(folder, HttpContext);
@@ -85,15 +80,36 @@ namespace Roadkill.Core.Mvc.Controllers
 		/// This action is for JSON calls only. Attempts a database connection using the provided connection string.
 		/// </summary>
 		/// <returns>Returns a <see cref="TestResult"/> containing information about any errors.</returns>
-		public ActionResult TestDatabaseConnection(string connectionString, string databaseName)
+		public ActionResult TestDatabaseConnection(string connectionString, string databaseType)
 		{
-			if (IsInstalledAndUserIsNotAdmin())
+			if (InstalledAndUserIsNotAdmin())
+				return Content("");
+
+			string errors = RepositoryManager.TestDbConnection(connectionString, databaseType);
+			return Json(new TestResult(errors), JsonRequestBehavior.AllowGet);
+		}
+
+		/// <summary>
+		/// Attempts to copy the correct SQL binaries to the bin folder for the architecture the app pool is running under.
+		/// </summary>
+		public ActionResult CopySqlite()
+		{
+			if (InstalledAndUserIsNotAdmin())
 				return Content("");
 
 			string errors = "";
+
 			try
 			{
-				_databaseTester.TestConnection(databaseName, connectionString);
+				string sqliteInteropFileSource = Path.Combine(_applicationSettings.SQLiteBinariesPath, "x86", "SQLite.Interop.dll");
+				string sqliteInteropFileDest = Server.MapPath("~/bin/SQLite.Interop.dll");
+
+				if (Environment.Is64BitOperatingSystem && Environment.Is64BitProcess)
+				{
+					sqliteInteropFileSource = Path.Combine(_applicationSettings.SQLiteBinariesPath, "x64", "SQLite.Interop.dll");
+				}
+
+				System.IO.File.Copy(sqliteInteropFileSource, sqliteInteropFileDest, true);
 			}
 			catch (Exception e)
 			{
@@ -103,7 +119,7 @@ namespace Roadkill.Core.Mvc.Controllers
 			return Json(new TestResult(errors), JsonRequestBehavior.AllowGet);
 		}
 
-		internal bool IsInstalledAndUserIsNotAdmin()
+		internal bool InstalledAndUserIsNotAdmin()
 		{
 			return _applicationSettings.Installed && !_userContext.IsAdmin;
 		}

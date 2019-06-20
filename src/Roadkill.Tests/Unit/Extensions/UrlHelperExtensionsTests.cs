@@ -1,14 +1,21 @@
-﻿using System.Web.Mvc;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Routing;
+using Moq;
 using NUnit.Framework;
 using Roadkill.Core;
 using Roadkill.Core.Configuration;
+using Roadkill.Core.Converters;
 using Roadkill.Core.Extensions;
 using Roadkill.Core.Mvc.Controllers;
 using Roadkill.Core.Services;
-using Roadkill.Tests.Unit.StubsAndMocks;
-using Roadkill.Tests.Unit.StubsAndMocks.Mvc;
 
-namespace Roadkill.Tests.Unit.Extensions
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -18,7 +25,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		private MocksAndStubsContainer _container;
 		private ApplicationSettings _applicationSettings;
 		private IUserContext _context;
-		private PageRepositoryMock _pageRepository;
+		private RepositoryMock _repository;
 		private UserServiceMock _userService;
 		private PageService _pageService;
 		private PageHistoryService _historyService;
@@ -36,7 +43,7 @@ namespace Roadkill.Tests.Unit.Extensions
 
 			_applicationSettings = _container.ApplicationSettings;
 			_context = _container.UserContext;
-			_pageRepository = _container.PageRepository;
+			_repository = _container.Repository;
 			_pluginFactory = _container.PluginFactory;
 			_settingsService = _container.SettingsService;
 			_siteSettings = _settingsService.GetSiteSettings();
@@ -52,7 +59,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void themecontent_should_return_expected_html()
+		public void ThemeContent_Should_Return_Expected_Html()
 		{
 			// Arrange
 			string expectedHtml = "/Themes/Mediawiki/mythemefile.png";
@@ -65,7 +72,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void csslink_should_return_expected_html()
+		public void CssLink_Should_Return_Expected_Html()
 		{
 			// Arrange
 			string expectedHtml = @"<link href=""/Assets/CSS/roadkill.css?version={AppVersion}"" rel=""stylesheet"" type=""text/css"" />";
@@ -79,7 +86,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void scriptlink_should_return_expected_html()
+		public void ScriptLink_Should_Return_Expected_Html()
 		{
 			// Arrange
 			string expectedHtml = @"<script type=""text/javascript"" language=""javascript"" src=""/Assets/Scripts/roadkill.js?version={AppVersion}""></script>";
@@ -93,7 +100,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void installerscriptlink_should_expected_html()
+		public void InstallerScriptLink_Should_Expected_Html()
 		{
 			// Arrange
 			string expectedHtml = @"<script type=""text/javascript"" language=""javascript"" src=""/Assets/Scripts/roadkill/installer/step1.js?version={AppVersion}""></script>";
@@ -107,7 +114,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void bootstrapcss_should_return_expected_html()
+		public void BootstrapCSS_Should_Return_Expected_Html()
 		{
 			// Arrange
 			string expectedHtml = @"<link href=""/Assets/bootstrap/css/bootstrap.min.css?version={AppVersion}"" rel=""stylesheet"" type=""text/css"" />";
@@ -121,11 +128,10 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void bootstrapjs_should_return_expected_html()
+		public void BootstrapJS_Should_Return_Expected_Html()
 		{
 			// Arrange
 			string expectedHtml = @"<script type=""text/javascript"" language=""javascript"" src=""/Assets/bootstrap/js/bootstrap.min.js?version={AppVersion}""></script>";
-			expectedHtml += "\n" +@"<script type=""text/javascript"" language=""javascript"" src=""/Assets/bootstrap/js/respond.min.js?version={AppVersion}""></script>";
 			expectedHtml = expectedHtml.Replace("{AppVersion}", ApplicationSettings.ProductVersion);
 
 			// Act
@@ -133,6 +139,20 @@ namespace Roadkill.Tests.Unit.Extensions
 
 			// Assert
 			Assert.That(actualHtml, Is.EqualTo(expectedHtml), actualHtml);
+		}
+
+		[Test]
+		[Ignore]
+		public void JsBundle_Should_Should_Return_Expected_Html()
+		{
+			// System.Web.Optimization.Scripts can't be tested (it uses HttpContext internally)
+		}
+
+		[Test]
+		[Ignore]
+		public void CssBundle_Should_Return_Expected_Html()
+		{
+			// System.Web.Optimization.Styles can't be tested (it uses HttpContext internally)
 		}
 	}
 }

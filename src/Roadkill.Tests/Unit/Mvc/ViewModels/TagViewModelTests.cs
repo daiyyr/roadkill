@@ -1,14 +1,21 @@
-﻿using NUnit.Framework;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using NUnit.Framework;
+using Roadkill.Core.Configuration;
 using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Plugins;
+using Roadkill.Tests.Unit.StubsAndMocks;
 
-namespace Roadkill.Tests.Unit.Mvc.ViewModels
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
 	public class TagViewModelTests
 	{
 		[Test]
-		public void constructor_should_fill_properties()
+		public void Constructor_Should_Fill_Properties()
 		{
 			// Arrange + Act
 			TagViewModel model = new TagViewModel("tag1");	
@@ -19,7 +26,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void equals_should_use_name_property_for_equality()
+		public void Equals_Should_Use_Name_Property_For_Equality()
 		{
 			// Arrange
 			TagViewModel model1 = new TagViewModel("tag1");
@@ -33,7 +40,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void hashcode_should_change_for_different_objects_and_not_change_for_lifetime_of_object()
+		public void Hashcode_Should_Change_For_Different_Objects_And_Not_Change_For_Lifetime_Of_Object()
 		{
 			// Arrange
 			TagViewModel model1 = new TagViewModel("tag1");
@@ -51,7 +58,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void tostring_should_return_name()
+		public void ToString_Should_Return_Name()
 		{
 			// Arrange
 			TagViewModel model1 = new TagViewModel("tag1");

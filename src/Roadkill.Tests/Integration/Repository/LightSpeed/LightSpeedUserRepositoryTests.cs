@@ -1,47 +1,34 @@
 ﻿using System;
-using Mindscape.LightSpeed;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using NUnit.Framework;
+using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
 using Roadkill.Core.Database.LightSpeed;
+using Roadkill.Core.Database.MongoDB;
 
 namespace Roadkill.Tests.Integration.Repository.LightSpeed
 {
 	[TestFixture]
-	[Category("Integration")]
+	[Category("Unit")]
 	public class LightSpeedUserRepositoryTests : UserRepositoryTests
 	{
-		[ThreadStatic]
-		private static LightSpeedContext _context;
-
-		public LightSpeedContext Context
-		{
-			get
-			{
-				if (_context == null)
-				{
-					_context = new LightSpeedContext();
-					_context.ConnectionString = ConnectionString;
-					_context.DataProvider = DataProvider.SqlServer2008;
-					_context.IdentityMethod = IdentityMethod.GuidComb;
-				}
-
-				return _context;
-			}
-		}
-
 		protected override string ConnectionString
 		{
-			get { return TestConstants.SQLSERVER_CONNECTION_STRING; }
+			get { return SqlExpressSetup.ConnectionString; }
 		}
 
-		protected override IUserRepository GetRepository()
+		protected override DataStoreType DataStoreType
 		{
-			return new LightSpeedUserRepository(Context.CreateUnitOfWork());
+			get { return DataStoreType.SqlServer2012; }
 		}
 
-		protected override void Clearup()
+		protected override IRepository GetRepository()
 		{
-			TestHelpers.SqlServerSetup.ClearDatabase();
+			return new LightSpeedRepository(ApplicationSettings);
 		}
 	}
 }

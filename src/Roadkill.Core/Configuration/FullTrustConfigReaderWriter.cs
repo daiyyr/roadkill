@@ -1,11 +1,15 @@
-﻿using Roadkill.Core.Database;
-using Roadkill.Core.Logging;
-using Roadkill.Core.Mvc.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Web.Configuration;
+using System.Xml.Linq;
+using Roadkill.Core.Database;
+using Roadkill.Core.Logging;
+using Roadkill.Core.Mvc.ViewModels;
 
 namespace Roadkill.Core.Configuration
 {
@@ -81,6 +85,25 @@ namespace Roadkill.Core.Configuration
 		}
 
 		/// <summary>
+		/// Updates the current version in the RoadkillSection and saves the configuration file.
+		/// </summary>
+		/// <param name="currentVersion">The current version.</param>
+		/// <exception cref="UpgradeException">An exception occurred while updating the version to the web.config</exception>
+		public override void UpdateCurrentVersion(string currentVersion)
+		{
+			try
+			{
+				RoadkillSection section = _config.GetSection("roadkill") as RoadkillSection;
+				section.Version = currentVersion;
+				_config.Save(ConfigurationSaveMode.Minimal);
+			}
+			catch (ConfigurationErrorsException ex)
+			{
+				throw new UpgradeException("An exception occurred while updating the version to the web.config", ex);
+			}
+		}
+
+		/// <summary>
 		/// Updates the current UI language in the globalization section and saves the configuration file.
 		/// </summary>
 		/// <param name="uiLanguageCode">The UI language code, e.g. fr for French.</param>
@@ -134,19 +157,21 @@ namespace Roadkill.Core.Configuration
 					_config.ConnectionStrings.ConnectionStrings["Roadkill"].ConnectionString = settings.ConnectionString;
 
 				// The roadkill section
+				DataStoreType dataStoreType = DataStoreType.ByName(settings.DataStoreTypeName);
 				RoadkillSection section = _config.GetSection("roadkill") as RoadkillSection;
 				section.AdminRoleName = settings.AdminRoleName;
 				section.AttachmentsFolder = settings.AttachmentsFolder;
-				section.AzureContainer = settings.AzureContainer;
 				section.UseObjectCache = settings.UseObjectCache;
 				section.UseBrowserCache = settings.UseBrowserCache;
 				section.ConnectionStringName = "Roadkill";
-				section.DatabaseName = string.IsNullOrEmpty(settings.DatabaseName) ? "SqlServer2008" : settings.DatabaseName; ;
+				section.DataStoreType = dataStoreType.Name;
 				section.EditorRoleName = settings.EditorRoleName;
 				section.LdapConnectionString = settings.LdapConnectionString;
 				section.LdapUsername = settings.LdapUsername;
 				section.LdapPassword = settings.LdapPassword;
+				section.RepositoryType = dataStoreType.CustomRepositoryType;
 				section.UseWindowsAuthentication = settings.UseWindowsAuth;
+				section.Version = ApplicationSettings.FileVersion.ToString();
 
 				// For first time installs: these need to be explicit as the DefaultValue="" in the attribute doesn't determine the value when saving.
 				section.IsPublicSite = settings.IsPublicSite;
@@ -220,18 +245,26 @@ namespace Roadkill.Core.Configuration
 			appSettings.AdminRoleName = _section.AdminRoleName;
 			appSettings.AttachmentsFolder = _section.AttachmentsFolder;
 			appSettings.AttachmentsRoutePath = _section.AttachmentsRoutePath;
-			appSettings.ApiKeys = ParseApiKeys(_section.ApiKeys);
-			appSettings.AzureConnectionString = _section.AzureConnectionString;
-			appSettings.AzureContainer = _section.AzureContainer;
-
 			appSettings.ConnectionStringName = _section.ConnectionStringName;
 			appSettings.ConnectionString = _config.ConnectionStrings.ConnectionStrings[_section.ConnectionStringName].ConnectionString;
 			if (string.IsNullOrEmpty(appSettings.ConnectionString))
 				appSettings.ConnectionString = ConfigurationManager.ConnectionStrings[_section.ConnectionStringName].ConnectionString;
 
+			if (string.IsNullOrEmpty(appSettings.ConnectionString))
+				Log.Warn("ConnectionString property is null/empty.");
+
+			// Ignore the legacy useCache and cacheText section keys, as the behaviour has changed.
 			appSettings.UseObjectCache = _section.UseObjectCache;
 			appSettings.UseBrowserCache = _section.UseBrowserCache;
-			appSettings.DatabaseName = string.IsNullOrEmpty(_section.DatabaseName) ? "SqlServer2008" : _section.DatabaseName;
+
+			// Look for the legacy database type key
+			string dataStoreType = _section.DataStoreType;
+			if (string.IsNullOrEmpty(dataStoreType) && !string.IsNullOrEmpty(_section.DatabaseType))
+				dataStoreType = _section.DatabaseType;
+
+			appSettings.LoggingTypes = _section.Logging;
+			appSettings.LogErrorsOnly = _section.LogErrorsOnly;
+			appSettings.DataStoreType = DataStoreType.ByName(dataStoreType);
 			appSettings.ConnectionStringName = _section.ConnectionStringName;
 			appSettings.EditorRoleName = _section.EditorRoleName;
 			appSettings.IgnoreSearchIndexErrors = _section.IgnoreSearchIndexErrors;
@@ -240,28 +273,13 @@ namespace Roadkill.Core.Configuration
 			appSettings.LdapConnectionString = _section.LdapConnectionString;
 			appSettings.LdapUsername = _section.LdapUsername;
 			appSettings.LdapPassword = _section.LdapPassword;
-			appSettings.UseAzureFileStorage = _section.UseAzureFileStorage;
+			appSettings.RepositoryType = _section.RepositoryType;
 			appSettings.UseHtmlWhiteList = _section.UseHtmlWhiteList;
 			appSettings.UserServiceType = _section.UserServiceType;
 			appSettings.UseWindowsAuthentication = _section.UseWindowsAuthentication;
+			appSettings.UpgradeRequired = UpgradeChecker.IsUpgradeRequired(_section.Version);
 
 			return appSettings;
-		}
-
-		private IEnumerable<string> ParseApiKeys(string apiKeys)
-		{
-			if (string.IsNullOrEmpty(apiKeys))
-				return new List<string>();
-
-			var keyList = new List<string>();
-
-			string[] keys = apiKeys.Split(',');
-			foreach (string item in keys)
-			{
-				keyList.Add(item.Trim());
-			}
-
-			return keyList;
 		}
 
 		/// <summary>

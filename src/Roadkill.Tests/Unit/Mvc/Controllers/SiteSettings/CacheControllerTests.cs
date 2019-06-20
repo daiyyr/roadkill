@@ -1,17 +1,23 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Caching;
+﻿using System.Linq;
 using System.Web.Mvc;
+using Moq;
 using NUnit.Framework;
 using Roadkill.Core;
 using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Mvc.Controllers;
-using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Converters;
+using Roadkill.Core.Database;
+using Roadkill.Core.Localization;
 using Roadkill.Core.Services;
+using Roadkill.Core.Security;
+using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Tests.Unit.StubsAndMocks;
+using System;
+using System.Collections.Generic;
+using System.Runtime.Caching;
 
-namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -21,7 +27,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 
 		private ApplicationSettings _applicationSettings;
 		private IUserContext _context;
-		private PageRepositoryMock _pageRepository;
+		private RepositoryMock _repository;
 		private UserServiceMock _userService;
 		private PageService _pageService;
 		private SettingsService _settingsService;
@@ -40,7 +46,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 
 			_applicationSettings = _container.ApplicationSettings;
 			_context = _container.UserContext;
-			_pageRepository = _container.PageRepository;
+			_repository = _container.Repository;
 			_settingsService = _container.SettingsService;
 			_userService = _container.UserService;
 			_pageCache = _container.PageViewModelCache;
@@ -52,7 +58,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void index_should_return_viewmodel_with_filled_properties()
+		public void Index_Should_Return_ViewModel_With_Filled_Properties()
 		{
 			// Arrange
 			_applicationSettings.UseObjectCache = true;			
@@ -75,7 +81,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void clear_should_redirect_and_clear_all_cache_items()
+		public void Clear_Should_Redirect_And_Clear_All_Cache_Items()
 		{
 			// Arrange
 			_applicationSettings.UseObjectCache = true;

@@ -1,51 +1,38 @@
-﻿using Roadkill.Core;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.Caching;
+using System.Text;
+using System.Threading.Tasks;
+using Moq;
+using Roadkill.Core;
 using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Converters;
 using Roadkill.Core.Security;
 using Roadkill.Core.Services;
 using Roadkill.Tests.Unit.StubsAndMocks;
-using System;
-using System.IO;
-using System.Linq;
-using System.Runtime.Caching;
-using Roadkill.Core.Database;
-using Roadkill.Core.DependencyResolution.StructureMap;
-using StructureMap;
 
 namespace Roadkill.Tests.Unit
 {
 	public class MocksAndStubsContainer
 	{
 		public ApplicationSettings ApplicationSettings { get; set; }
-		public ConfigReaderWriterStub ConfigReaderWriter { get; set; }
-		public IUserContext UserContext { get; set; }
-
 		public MemoryCache MemoryCache { get; set; }
 		public ListCache ListCache { get; set; }
 		public SiteCache SiteCache { get; set; }
 		public PageViewModelCache PageViewModelCache { get; set; }
-		
-		public PluginFactoryMock PluginFactory { get; set; }
-		public MarkupConverter MarkupConverter { get; set; }
-		public EmailClientMock EmailClient { get; set; }
-
+		public IUserContext UserContext { get; set; }
+		public RepositoryMock Repository { get; set; }
 		public UserServiceMock UserService { get; set; }
 		public PageService PageService { get; set; }
 		public SearchServiceMock SearchService { get; set; }
 		public PageHistoryService HistoryService { get; set; }
 		public SettingsService SettingsService { get; set; }
-		public IFileService FileService { get; set; }
-
-		public RepositoryFactoryMock RepositoryFactory { get; set; }
-		public SettingsRepositoryMock SettingsRepository { get; set; }
-		public UserRepositoryMock UserRepository { get; set; }
-		public PageRepositoryMock PageRepository { get; set; }
-		public InstallerRepositoryMock InstallerRepository { get; set; }
-		public DatabaseTesterMock DatabaseTester { get;set; }
-		public Container StructureMapContainer { get; set; }
-		public StructureMapServiceLocator Locator { get; set; }
-		public InstallationService InstallationService { get; set; }
+		public PluginFactoryMock PluginFactory { get; set; }
+		public MarkupConverter MarkupConverter { get; set; }
+		public EmailClientMock EmailClient { get; set; }
 
 		/// <summary>
 		/// Creates a new instance of MocksAndStubsContainer.
@@ -58,63 +45,31 @@ namespace Roadkill.Tests.Unit
 			ApplicationSettings = new ApplicationSettings();
 			ApplicationSettings.Installed = true;
 			ApplicationSettings.AttachmentsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "attachments");
-			ConfigReaderWriter = new ConfigReaderWriterStub();
 
 			// Cache
 			MemoryCache = useCacheMock ? new CacheMock() : CacheMock.RoadkillCache;
 			ListCache = new ListCache(ApplicationSettings, MemoryCache);
-			SiteCache = new SiteCache(MemoryCache);
+			SiteCache = new SiteCache(ApplicationSettings, MemoryCache);
 			PageViewModelCache = new PageViewModelCache(ApplicationSettings, MemoryCache);
 
-			// Repositories
-			SettingsRepository = new SettingsRepositoryMock();
-			SettingsRepository.SiteSettings = new SiteSettings();
-			SettingsRepository.SiteSettings.MarkupType = "Creole";
-			UserRepository = new UserRepositoryMock();
-			PageRepository = new PageRepositoryMock();
-			InstallerRepository = new InstallerRepositoryMock();
+			// Repository
+			Repository = new RepositoryMock();
+			Repository.SiteSettings = new SiteSettings();
+			Repository.SiteSettings.MarkupType = "Creole";
 
-			RepositoryFactory = new RepositoryFactoryMock()
-			{
-				SettingsRepository = SettingsRepository,
-				UserRepository = UserRepository,
-				PageRepository = PageRepository,
-				InstallerRepository = InstallerRepository
-			};
-			DatabaseTester = new DatabaseTesterMock();
-
-			// Plugins
 			PluginFactory = new PluginFactoryMock();
-			MarkupConverter = new MarkupConverter(ApplicationSettings, SettingsRepository, PageRepository, PluginFactory);
+			MarkupConverter = new MarkupConverter(ApplicationSettings, Repository, PluginFactory);
 
-			// Services
 			// Dependencies for PageService. Be careful to make sure the class using this Container isn't testing the mock.
-			SettingsService = new SettingsService(RepositoryFactory, ApplicationSettings);
-			UserService = new UserServiceMock(ApplicationSettings, UserRepository);
+			SettingsService = new SettingsService(ApplicationSettings, Repository);
+			UserService = new UserServiceMock(ApplicationSettings, Repository);
 			UserContext = new UserContext(UserService);
-			SearchService = new SearchServiceMock(ApplicationSettings, SettingsRepository, PageRepository, PluginFactory);
-			SearchService.PageContents = PageRepository.PageContents;
-			SearchService.Pages = PageRepository.Pages;
-			HistoryService = new PageHistoryService(ApplicationSettings, SettingsRepository, PageRepository, UserContext,
-				PageViewModelCache, PluginFactory);
-			FileService = new FileServiceMock();
-			PageService = new PageService(ApplicationSettings, SettingsRepository, PageRepository, SearchService, HistoryService,
-				UserContext, ListCache, PageViewModelCache, SiteCache, PluginFactory);
+			SearchService = new SearchServiceMock(ApplicationSettings, Repository, PluginFactory);
+			SearchService.PageContents = Repository.PageContents;
+			SearchService.Pages = Repository.Pages;
+			HistoryService = new PageHistoryService(ApplicationSettings, Repository, UserContext, PageViewModelCache, PluginFactory);
 
-			StructureMapContainer = new Container(x =>
-			{
-				x.AddRegistry(new TestsRegistry(this));
-			});
-
-			Locator = new StructureMapServiceLocator(StructureMapContainer, false);
-
-			InstallationService = new InstallationService((databaseName, connectionString) =>
-			{
-				InstallerRepository.DatabaseName = databaseName;
-				InstallerRepository.ConnectionString = connectionString;
-
-				return InstallerRepository;
-			}, Locator);
+			PageService = new PageService(ApplicationSettings, Repository, SearchService, HistoryService, UserContext, ListCache, PageViewModelCache, SiteCache, PluginFactory);
 
 			// EmailTemplates
 			EmailClient = new EmailClientMock();
@@ -124,15 +79,6 @@ namespace Roadkill.Tests.Unit
 		{
 			foreach (string key in MemoryCache.Select(x => x.Key))
 				MemoryCache.Remove(key);
-		}
-
-		public class TestsRegistry : Registry
-		{
-			public TestsRegistry(MocksAndStubsContainer mockContainer)
-			{
-				For<IFileService>().Use(mockContainer.FileService);
-				For<IRepositoryFactory>().Use(mockContainer.RepositoryFactory);
-			}
 		}
 	}
 }

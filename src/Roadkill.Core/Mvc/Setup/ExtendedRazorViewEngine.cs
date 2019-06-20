@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Web.Mvc;
 
-namespace Roadkill.Core.Mvc.Setup
+namespace Roadkill.Core.Mvc
 {
 	public class ExtendedRazorViewEngine : RazorViewEngine
 	{

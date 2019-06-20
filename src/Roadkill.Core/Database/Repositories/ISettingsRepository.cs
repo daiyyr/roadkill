@@ -9,8 +9,11 @@ using PluginSettings = Roadkill.Core.Plugins.Settings;
 
 namespace Roadkill.Core.Database.Repositories
 {
-	public interface ISettingsRepository : IDisposable
+	public interface ISettingsRepository
 	{
+		void Install(DataStoreType dataStoreType, string connectionString, bool enableCache);
+		void Upgrade(ApplicationSettings applicationSettings);
+
 		void SaveSiteSettings(SiteSettings siteSettings);
 		SiteSettings GetSiteSettings();
 		void SaveTextPluginSettings(TextPlugin plugin);

@@ -1,13 +1,24 @@
 ﻿using System;
+using System.Collections.Specialized;
 using System.Web;
+using System.Web.Mvc;
+using System.Web.Routing;
+using Moq;
+using NUnit;
 using NUnit.Framework;
 using Roadkill.Core;
+using Roadkill.Core.Mvc.Controllers;
+using MvcContrib.TestHelper;
+using Roadkill.Core.Attachments;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Mvc.Attributes;
+using System.Security.Principal;
+using Roadkill.Core.Security;
 using Roadkill.Tests.Unit.StubsAndMocks;
-using Roadkill.Tests.Unit.StubsAndMocks.Mvc;
+using System.Web.Http.Controllers;
+using System.Threading;
 
-namespace Roadkill.Tests.Unit.Mvc.Attributes
+namespace Roadkill.Tests.Unit
 {
 	/// <summary>
 	/// Setup-heavy tests for the AdminRequired attribute.
@@ -36,7 +47,7 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 		}
 
 		[Test]
-		public void should_use_authorizationprovider()
+		public void Should_Use_AuthorizationProvider()
 		{
 			// Arrange
 			EditorRequiredAttributeMock attribute = new EditorRequiredAttributeMock();

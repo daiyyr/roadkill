@@ -1,4 +1,5 @@
-﻿namespace Roadkill.Core.Attachments
+﻿using System;
+namespace Roadkill.Core.Attachments
 {
 	/// <summary>
 	/// Defines a class that wraps the HttpResponse object.

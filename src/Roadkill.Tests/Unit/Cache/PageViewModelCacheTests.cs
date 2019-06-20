@@ -21,7 +21,7 @@ namespace Roadkill.Tests.Unit.Cache
 	public class PageViewModelCacheTests
 	{
 		[Test]
-		public void removeall_should_remove_pageviewmodelcache_keys_only()
+		public void RemoveAll_Should_Remove_PageViewModelCache_Keys_Only()
 		{
 			// Arrange
 			CacheMock cache = new CacheMock();

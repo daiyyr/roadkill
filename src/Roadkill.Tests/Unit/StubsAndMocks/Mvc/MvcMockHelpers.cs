@@ -1,13 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
+using NUnit.Framework;
 using Roadkill.Core.Mvc;
-using Roadkill.Core.Mvc.Setup;
+using Roadkill.Tests.Unit.StubsAndMocks.Mvc;
 
-namespace Roadkill.Tests.Unit.StubsAndMocks.Mvc
+namespace Roadkill.Tests.Unit
 {
 	/// <summary>
 	/// Based on http://www.hanselman.com/blog/ASPNETMVCSessionAtMix08TDDAndMvcMockHelpers.aspx

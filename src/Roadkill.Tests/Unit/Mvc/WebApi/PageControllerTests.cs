@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using Roadkill.Core;
+using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
+using Roadkill.Core.Mvc.Controllers.Api;
 using Roadkill.Core.Mvc.ViewModels;
-using Roadkill.Core.Mvc.WebApi;
 using Roadkill.Core.Services;
-using Roadkill.Tests.Unit.StubsAndMocks;
 
-namespace Roadkill.Tests.Unit.Mvc.WebApi
+namespace Roadkill.Tests.Unit.WebApi
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -16,7 +17,10 @@ namespace Roadkill.Tests.Unit.Mvc.WebApi
 	{
 		private MocksAndStubsContainer _container;
 
-		private PageRepositoryMock _pageRepositoryMock;
+		private RepositoryMock _repositoryMock;
+		private ApplicationSettings _applicationSettings;
+		private UserServiceMock _userService;
+		private IUserContext _userContext;
 		private PageService _pageService;
 		private PagesController _pagesController;
 
@@ -25,14 +29,17 @@ namespace Roadkill.Tests.Unit.Mvc.WebApi
 		{
 			_container = new MocksAndStubsContainer();
 
-			_pageRepositoryMock = _container.PageRepository;
+			_applicationSettings = _container.ApplicationSettings;
+			_userContext = _container.UserContext;
+			_userService = _container.UserService;
+			_repositoryMock = _container.Repository;
 			_pageService = _container.PageService;
 
-			_pagesController = new PagesController(_pageService);
+			_pagesController = new PagesController(_pageService, _applicationSettings, _userService, _userContext);
 		}
 
 		[Test]
-		public void get_should_return_all_pages()
+		public void Get_Should_Return_All_Pages()
 		{
 			// Arrange
 			_pageService.AddPage(new PageViewModel() { Id = 1, Title = "new page" });
@@ -46,11 +53,11 @@ namespace Roadkill.Tests.Unit.Mvc.WebApi
 		}
 
 		[Test]
-		public void get_should_return_page_by_id()
+		public void Get_Should_Return_Page_By_Id()
 		{
 			// Arrange
 			Page expectedPage = new Page() { Id = 7, Title = "new page" };
-			_pageRepositoryMock.Pages.Add(expectedPage);
+			_repositoryMock.Pages.Add(expectedPage);
 
 			// Act
 			PageViewModel actualPage = _pagesController.Get(7);
@@ -61,7 +68,7 @@ namespace Roadkill.Tests.Unit.Mvc.WebApi
 		}
 
 		[Test]
-		public void get_should_return_null_when_page_does_not_exist()
+		public void Get_Should_Return_Null_When_Page_Does_Not_Exist()
 		{
 			// Arrange
 
@@ -73,7 +80,7 @@ namespace Roadkill.Tests.Unit.Mvc.WebApi
 		}
 
 		[Test]
-		public void put_should_update_page()
+		public void Put_Should_Update_Page()
 		{
 			// Arrange
 			DateTime version1Date = DateTime.Today.AddDays(-1); // stops the getlatestcontent acting up when add+update are the same time
@@ -83,7 +90,7 @@ namespace Roadkill.Tests.Unit.Mvc.WebApi
 			page.Tags = "tag1, tag2";
 			page.CreatedOn = version1Date;
 			page.ModifiedOn = version1Date;
-			PageContent pageContent = _pageRepositoryMock.AddNewPage(page, "Some content1", "editor", version1Date);
+			PageContent pageContent = _repositoryMock.AddNewPage(page, "Some content1", "editor", version1Date);
 
 			PageViewModel model = new PageViewModel(pageContent.Page);
 			model.Title = "New title";
@@ -102,7 +109,7 @@ namespace Roadkill.Tests.Unit.Mvc.WebApi
 		}
 
 		[Test]
-		public void post_should_add_page()
+		public void Post_Should_Add_Page()
 		{
 			// Arrange
 			PageViewModel model = new PageViewModel();

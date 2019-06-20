@@ -5,10 +5,8 @@ using Roadkill.Core.Converters;
 
 namespace Roadkill.Core.Database
 {
-	public interface IPageRepository : IDisposable
+	public interface IPageRepository
 	{
-		// AddNewPage and AddNewPageContentVersion should be altered so they don't return anything
-
 		PageContent AddNewPage(Page page, string text, string editedBy, DateTime editedOn);
 		PageContent AddNewPageContentVersion(Page page, string text, string editedBy, DateTime editedOn, int version);
 		/// <summary>
@@ -41,6 +39,7 @@ namespace Roadkill.Core.Database
 		Page GetPageByTitle(string title);
 		PageContent GetPageContentById(Guid id);
 		PageContent GetPageContentByPageIdAndVersionNumber(int id, int versionNumber);
+		IEnumerable<PageContent> GetPageContentByEditedBy(string username);
 		Page SaveOrUpdatePage(Page page);
 		void UpdatePageContent(PageContent content); // no new version
 	}

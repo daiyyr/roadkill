@@ -1,17 +1,27 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.Caching;
+﻿using System.Linq;
 using System.Web.Mvc;
+using Moq;
 using NUnit.Framework;
 using Roadkill.Core;
 using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Mvc.Controllers;
-using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Converters;
+using Roadkill.Core.Database;
+using Roadkill.Core.Localization;
 using Roadkill.Core.Services;
+using Roadkill.Core.Security;
+using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Tests.Unit.StubsAndMocks;
+using System;
+using System.Collections.Generic;
+using System.Runtime.Caching;
+using MvcContrib.TestHelper;
+using StructureMap;
+using System.IO;
+using Roadkill.Core.DI;
 
-namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -21,7 +31,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 
 		private ApplicationSettings _applicationSettings;
 		private IUserContext _context;
-		private SettingsRepositoryMock _settingsRepository;
+		private RepositoryMock _repository;
 		private UserServiceMock _userService;
 		private SettingsService _settingsService;
 		private PageViewModelCache _pageCache;
@@ -41,7 +51,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 			_applicationSettings = _container.ApplicationSettings;
 			_applicationSettings.AttachmentsFolder = AppDomain.CurrentDomain.BaseDirectory;
 			_context = _container.UserContext;
-			_settingsRepository = _container.SettingsRepository;
+			_repository = _container.Repository;
 			_settingsService = _container.SettingsService;
 			_userService = _container.UserService;
 			_pageCache = _container.PageViewModelCache;
@@ -54,7 +64,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void index_get_should_return_view_and_viewmodel()
+		public void Index_GET_Should_Return_View_And_ViewModel()
 		{
 			// Arrange
 
@@ -68,7 +78,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void index_post_should_return_viewresult_and_save_settings()
+		public void Index_POST_Should_Return_ViewResult_And_Save_Settings()
 		{
 			// Arrange
 			SettingsViewModel model = new SettingsViewModel();
@@ -82,11 +92,11 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 			SettingsViewModel resultModel = result.ModelFromActionResult<SettingsViewModel>();
 			Assert.That(resultModel, Is.Not.Null, "model");
 
-			Assert.That(_settingsRepository.GetSiteSettings().MenuMarkup, Is.EqualTo("some new markup"));
+			Assert.That(_repository.GetSiteSettings().MenuMarkup, Is.EqualTo("some new markup"));
 		}
 
 		[Test]
-		public void index_post_should_accept_httppost_only()
+		public void Index_POST_Should_Accept_HttpPost_Only()
 		{
 			// Arrange
 			SettingsViewModel model = new SettingsViewModel();
@@ -99,7 +109,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void index_post_should_clear_site_cache()
+		public void Index_POST_Should_Clear_Site_Cache()
 		{
 			// Arrange
 			_siteCache.AddMenu("some menu");

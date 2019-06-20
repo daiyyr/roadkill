@@ -5,11 +5,14 @@ using System.Web.Mvc;
 using Roadkill.Core.Converters;
 using Roadkill.Core.Localization;
 using Roadkill.Core.Configuration;
+using System.Diagnostics;
+using System.Web;
+using System.Web.UI;
 using Roadkill.Core.Services;
 using Roadkill.Core.Security;
 using Roadkill.Core.Mvc.Attributes;
 using Roadkill.Core.Mvc.ViewModels;
-using StructureMap;
+using Roadkill.Core.Text;
 
 namespace Roadkill.Core.Mvc.Controllers
 {
@@ -19,12 +22,12 @@ namespace Roadkill.Core.Mvc.Controllers
 	[OptionalAuthorization]
 	public class HomeController : ControllerBase
 	{
-		public IPageService PageService { get; private set; }
+		public PageService PageService { get; private set; }
 		private SearchService _searchService;
 		private MarkupConverter _markupConverter;
 
 		public HomeController(ApplicationSettings settings, UserServiceBase userManager, MarkupConverter markupConverter,
-			IPageService pageService, SearchService searchService, IUserContext context, SettingsService settingsService)
+			PageService pageService, SearchService searchService, IUserContext context, SettingsService settingsService)
 			: base(settings, userManager, context, settingsService) 
 		{
 			_markupConverter = markupConverter;
@@ -95,11 +98,18 @@ namespace Roadkill.Core.Mvc.Controllers
 		[AllowAnonymous]
 		public ActionResult BootstrapNavMenu()
 		{
-			var pageService = PageService as PageService;
-			if (pageService == null)
-				return Content("");
-
-			return Content(pageService.GetBootStrapNavMenu(Context));
+			return Content(PageService.GetBootStrapNavMenu(Context));
+		}
+		
+		/// <summary>
+		/// Legacy action - use NavMenu().
+		/// </summary>
+		/// <returns></returns>
+		[Obsolete]
+		[AllowAnonymous]
+		public ActionResult LeftMenu()
+		{
+			return Content(PageService.GetMenu(Context));
 		}
 	}
 }

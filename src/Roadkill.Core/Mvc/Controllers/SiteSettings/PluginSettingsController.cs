@@ -1,15 +1,18 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Web.Mvc;
-using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
-using Roadkill.Core.Database.Repositories;
+using Roadkill.Core.Database;
+using Roadkill.Core.Services;
 using Roadkill.Core.Mvc.Attributes;
 using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Core.Plugins;
 using Roadkill.Core.Security;
-using Roadkill.Core.Services;
+using PluginSettings = Roadkill.Core.Plugins.Settings;
+using Roadkill.Core.Cache;
 
 namespace Roadkill.Core.Mvc.Controllers
 {
@@ -17,18 +20,18 @@ namespace Roadkill.Core.Mvc.Controllers
 	public class PluginSettingsController : ControllerBase
 	{
 		private IPluginFactory _pluginFactory;
-		private ISettingsRepository _settingsRepository;
+		private IRepository _repository;
 		private SiteCache _siteCache;
 		private PageViewModelCache _viewModelCache;
 		private ListCache _listCache;
 
 		public PluginSettingsController(ApplicationSettings settings, UserServiceBase userService, IUserContext context, 
-			SettingsService settingsService, IPluginFactory pluginFactory, ISettingsRepository settingsRepository, SiteCache siteCache, 
+			SettingsService settingsService, IPluginFactory pluginFactory, IRepository repository, SiteCache siteCache, 
 			PageViewModelCache viewModelCache, ListCache listCache)
 			: base (settings, userService, context, settingsService)
 		{
 			_pluginFactory = pluginFactory;
-			_settingsRepository = settingsRepository;
+			_repository = repository;
 			_siteCache = siteCache;
 			_viewModelCache = viewModelCache;
 			_listCache = listCache;
@@ -91,13 +94,13 @@ namespace Roadkill.Core.Mvc.Controllers
 
 			// Update the plugin last saved date - this is important for 304 modified tracking
 			// when the browser caching option is turned on.
-			Configuration.SiteSettings settings = SettingsService.GetSiteSettings();
+			SiteSettings settings = SettingsService.GetSiteSettings();
 			settings.PluginLastSaveDate = DateTime.UtcNow;
 			SettingsViewModel settingsViewModel = new SettingsViewModel(ApplicationSettings, settings);
 			SettingsService.SaveSiteSettings(settingsViewModel);
 
 			// Save and clear the cached settings
-			_settingsRepository.SaveTextPluginSettings(plugin);
+			_repository.SaveTextPluginSettings(plugin);
 			_siteCache.RemovePluginSettings(plugin);
 		
 			// Clear all other caches if the plugin has been enabled or disabled.

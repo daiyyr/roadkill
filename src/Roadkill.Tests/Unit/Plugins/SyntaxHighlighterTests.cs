@@ -10,9 +10,10 @@ using Roadkill.Core;
 using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
+using Roadkill.Core.Plugins.SpecialPages.BuiltIn;
+using Roadkill.Core.Plugins.Text.BuiltIn;
 using Roadkill.Core.Security;
 using Roadkill.Core.Services;
-using Roadkill.Plugins.Text.BuiltIn;
 using Roadkill.Tests.Unit.StubsAndMocks;
 
 namespace Roadkill.Tests.Unit.Plugins
@@ -30,7 +31,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void beforeparse_should_replace_token_with_html_pre_tag_and_surround_with_ignore_tokens()
+		public void BeforeParse_Should_Replace_Token_With_Html_Pre_Tag_And_Surround_With_Ignore_Tokens()
 		{
 			// Arrange
 			string expectedParsedMarkup = "here is some code that mimics our beautiful C#: \n"+
@@ -49,7 +50,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void afterparse_should_remove_ignore_tokens()
+		public void AfterParse_Should_Remove_Ignore_Tokens()
 		{
 			// Arrange
 			string expectedHtml = "here is some code that mimics our beautiful C#: \n \n" +
@@ -67,7 +68,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void getheadcontent_should_use_headjs_and_load_shcore_first()
+		public void GetHeadContent_Should_Use_HeadJs_And_Load_ShCore_First()
 		{
 			// Arrange
 			SyntaxHighlighter highlighter = new SyntaxHighlighter();
@@ -80,7 +81,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void getheadcontent_should_contain_syntaxhighlighterall_in_headjs_load_function()
+		public void GetHeadContent_Should_Contain_SyntaxHighlighterAll_In_HeadJS_Load_Function()
 		{
 			// Arrange
 			SyntaxHighlighter highlighter = new SyntaxHighlighter();

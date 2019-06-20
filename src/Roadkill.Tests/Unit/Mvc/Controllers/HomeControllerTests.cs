@@ -1,23 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Runtime.Caching;
 using System.Web.Mvc;
-using MvcContrib.TestHelper;
+using Moq;
 using NUnit.Framework;
 using Roadkill.Core;
 using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
+using Roadkill.Core.Mvc.Controllers;
 using Roadkill.Core.Converters;
 using Roadkill.Core.Database;
 using Roadkill.Core.Localization;
-using Roadkill.Core.Mvc.Controllers;
-using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Core.Services;
+using Roadkill.Core.Security;
+using Roadkill.Core.Mvc.ViewModels;
+using System.Runtime.Caching;
 using Roadkill.Tests.Unit.StubsAndMocks;
-using Roadkill.Tests.Unit.StubsAndMocks.Mvc;
+using MvcContrib.TestHelper;
 
-namespace Roadkill.Tests.Unit.Mvc.Controllers
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -27,7 +29,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 
 		private ApplicationSettings _applicationSettings;
 		private IUserContext _context;
-		private PageRepositoryMock _pageRepository;
+		private RepositoryMock _repository;
 		private UserServiceMock _userService;
 		private PageService _pageService;
 		private PageHistoryService _historyService;
@@ -49,7 +51,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 
 			_applicationSettings = _container.ApplicationSettings;
 			_context = _container.UserContext;
-			_pageRepository = _container.PageRepository;
+			_repository = _container.Repository;
 			_pluginFactory = _container.PluginFactory;
 			_settingsService = _container.SettingsService;
 			_userService = _container.UserService;
@@ -68,7 +70,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void index_should_return_default_message_when_no_homepage_tag_exists()
+		public void Index_Should_Return_Default_Message_When_No_Homepage_Tag_Exists()
 		{
 			// Arrange
 
@@ -85,7 +87,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void index_should_return_homepage_when_tag_exists()
+		public void Index_Should_Return_Homepage_When_Tag_Exists()
 		{
 			// Arrange
 			Page page1 = new Page() 
@@ -100,8 +102,8 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 				Page = page1, 
 				Text = "Hello world" 
 			};
-			_pageRepository.Pages.Add(page1);
-			_pageRepository.PageContents.Add(page1Content);
+			_repository.Pages.Add(page1);
+			_repository.PageContents.Add(page1Content);
 
 			// Act
 			ActionResult result = _homeController.Index();
@@ -116,7 +118,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void search_should_return_some_results_with_unicode_content()
+		public void Search_Should_Return_Some_Results_With_Unicode_Content()
 		{
 			// Arrange
 			Page page1 = new Page()
@@ -131,8 +133,8 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 				Page = page1,
 				Text = "БД сервера событий была перенесена из PostgreSQL 8.3 на PostgreSQL 9.1.4. Сервер, развернутый на Windows платформе"
 			};
-			_pageRepository.Pages.Add(page1);
-			_pageRepository.PageContents.Add(page1Content);
+			_repository.Pages.Add(page1);
+			_repository.PageContents.Add(page1Content);
 
 			// Act
 			ActionResult result = _homeController.Search("ОШИБКА: неверная последовательность байт для кодировки");
@@ -148,7 +150,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void globaljsvars_should_return_view()
+		public void GlobalJsVars_Should_Return_View()
 		{
 			// Arrange
 
@@ -161,7 +163,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void navmenu_should_return_view()
+		public void NavMenu_Should_Return_View()
 		{
 			// Arrange
 
@@ -174,12 +176,25 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void bootstrapnavmenu_should_return_view()
+		public void BootstrapNavMenu_Should_Return_View()
 		{
 			// Arrange
 
 			// Act
 			ActionResult result = _homeController.BootstrapNavMenu();
+
+			// Assert
+			ContentResult contentResult = result.AssertResultIs<ContentResult>();
+			Assert.That(contentResult.Content, Is.Not.Empty);
+		}
+
+		[Test]
+		public void LeftMenu_Should_Return_Content()
+		{
+			// Arrange
+
+			// Act
+			ActionResult result = _homeController.LeftMenu();
 
 			// Assert
 			ContentResult contentResult = result.AssertResultIs<ContentResult>();

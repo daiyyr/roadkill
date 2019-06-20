@@ -1,19 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Web.Mvc;
 using Moq;
 using NUnit.Framework;
+using Roadkill.Core;
+using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
+using Roadkill.Core.Mvc.Controllers;
 using Roadkill.Core.Converters;
 using Roadkill.Core.Database;
-using Roadkill.Core.Mvc.Controllers;
-using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Localization;
 using Roadkill.Core.Services;
+using Roadkill.Core.Security;
+using Roadkill.Core.Mvc.ViewModels;
+using System.Runtime.Caching;
 using Roadkill.Tests.Unit.StubsAndMocks;
-using Roadkill.Tests.Unit.StubsAndMocks.Mvc;
 
-namespace Roadkill.Tests.Unit.Mvc.Controllers
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -22,7 +27,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		private MocksAndStubsContainer _container;
 
 		private ApplicationSettings _applicationSettings;
-		private PageRepositoryMock _pageRepository;
+		private RepositoryMock _repository;
 		private UserServiceMock _userService;
 		private PageHistoryService _historyService;
 		private SettingsService _settingsService;
@@ -35,7 +40,6 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		private IPageService _pageService;
 		private MvcMockContainer _mocksContainer;
 		private PagesController _pagesController;
-		private SettingsRepositoryMock _settingsRepository;
 
 		[SetUp]
 		public void Setup()
@@ -43,10 +47,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 			_container = new MocksAndStubsContainer();
 
 			_applicationSettings = _container.ApplicationSettings;
-
-			_settingsRepository = _container.SettingsRepository;
-			_pageRepository = _container.PageRepository;
-			
+			_repository = _container.Repository;
 			_pluginFactory = _container.PluginFactory;
 			_settingsService = _container.SettingsService;
 			_userService = _container.UserService;
@@ -59,15 +60,15 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 
 			// Customise the page service so we can verify what was called
 			_pageServiceMock = new Mock<IPageService>();
-			_pageServiceMock.Setup(x => x.GetMarkupConverter()).Returns(new MarkupConverter(_applicationSettings, _settingsRepository, _pageRepository, _pluginFactory));
+			_pageServiceMock.Setup(x => x.GetMarkupConverter()).Returns(new MarkupConverter(_applicationSettings, _repository, _pluginFactory));
 			_pageServiceMock.Setup(x => x.GetById(It.IsAny<int>(), false)).Returns<int, bool>((int id, bool loadContent) =>
 				{
-					Page page = _pageRepository.GetPageById(id);
+					Page page = _repository.GetPageById(id);
 					return new PageViewModel(page);
 				});
 			_pageServiceMock.Setup(x => x.GetById(It.IsAny<int>(), true)).Returns<int,bool>((int id, bool loadContent) =>
 			{
-				PageContent content = _pageRepository.GetLatestPageContent(id);
+				PageContent content = _repository.GetLatestPageContent(id);
 
 				if (content != null)
 					return new PageViewModel(content, _markupConverter);
@@ -85,8 +86,8 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		{
 			Page page1 = new Page() { Id = 1, Tags = "tag1,tag2", Title = "Welcome to the site", CreatedBy = "admin" };
 			PageContent page1Content = new PageContent() { Id = Guid.NewGuid(), Page = page1, Text = "Hello world 1", VersionNumber = 1 };
-			_pageRepository.Pages.Add(page1);
-			_pageRepository.PageContents.Add(page1Content);
+			_repository.Pages.Add(page1);
+			_repository.PageContents.Add(page1Content);
 
 			return page1;
 		}
@@ -95,19 +96,19 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		{
 			Page page2 = new Page() { Id = 50, Tags = "anothertag", Title = "Page 2" };
 			PageContent page2Content = new PageContent() { Id = Guid.NewGuid(), Page = page2, Text = "Hello world 2" };
-			_pageRepository.Pages.Add(page2);
-			_pageRepository.PageContents.Add(page2Content);
+			_repository.Pages.Add(page2);
+			_repository.PageContents.Add(page2Content);
 
 			return page2;
 		}
 
 		[Test]
-		public void allpages_should_return_model_and_pages()
+		public void AllPages_Should_Return_Model_And_Pages()
 		{
 			// Arrange
 			Page page1 = AddDummyPage1();
 			Page page2 = AddDummyPage2();
-			PageContent page1Content = _pageRepository.PageContents.First(p => p.Page.Id == page1.Id);
+			PageContent page1Content = _repository.PageContents.First(p => p.Page.Id == page1.Id);
 
 			// Act
 			ActionResult result = _pagesController.AllPages();
@@ -123,7 +124,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void alltags_should_return_model_and_tags()
+		public void AllTags_Should_Return_Model_And_Tags()
 		{
 			// Arrange
 			Page page1 = AddDummyPage1();
@@ -144,7 +145,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void alltagsasjson_should_return_model_and_tags()
+		public void AllTagsAsJson_Should_Return_Model_And_Tags()
 		{
 			// Arrange
 			Page page1 = AddDummyPage1();
@@ -169,14 +170,14 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void byuser_should_contain_viewdata_and_return_model_and_pages()
+		public void ByUser_Should_Contain_ViewData_And_Return_Model_And_Pages()
 		{
 			// Arrange
 			string username = "amazinguser";
 
 			Page page1 = AddDummyPage1();
 			page1.CreatedBy = username;
-			PageContent page1Content = _pageRepository.PageContents.First(p => p.Page.Id == page1.Id);
+			PageContent page1Content = _repository.PageContents.First(p => p.Page.Id == page1.Id);
 
 			Page page2 = AddDummyPage2();
 			page2.CreatedBy = username;
@@ -194,7 +195,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void byuser_with_base64_username_should_contain_viewdata_and_return_model_and_pages()
+		public void ByUser_With_Base64_Username_Should_Contain_ViewData_And_Return_Model_And_Pages()
 		{
 			// Arrange
 			string username = @"mydomain\Das ádmin``";
@@ -202,7 +203,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 
 			Page page1 = AddDummyPage1();
 			page1.CreatedBy = username;
-			PageContent page1Content = _pageRepository.PageContents.First(p => p.Page.Id == page1.Id);
+			PageContent page1Content = _repository.PageContents.First(p => p.Page.Id == page1.Id);
 
 			Page page2 = AddDummyPage2();
 			page2.CreatedBy = username;
@@ -220,7 +221,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void delete_should_contains_redirect_and_remove_page()
+		public void Delete_Should_Contains_Redirect_And_Remove_Page()
 		{
 			// Arrange
 			Page page1 = AddDummyPage1();
@@ -239,7 +240,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void edit_get_should_redirect_with_invalid_page_id()
+		public void Edit_GET_Should_Redirect_With_Invalid_Page_Id()
 		{
 			// Arrange
 
@@ -255,7 +256,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void edit_get_as_editor_with_locked_page_should_return_403()
+		public void Edit_GET_As_Editor_With_Locked_Page_Should_Return_403()
 		{
 			// Arrange
 			_contextStub.IsAdmin = false;
@@ -275,11 +276,11 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void edit_get_should_return_viewresult()
+		public void Edit_GET_Should_Return_ViewResult()
 		{
 			// Arrange
 			Page page = AddDummyPage1();
-			PageContent pageContent = _pageRepository.PageContents.First(p => p.Page.Id == page.Id);
+			PageContent pageContent = _repository.PageContents.First(p => p.Page.Id == page.Id);
 			_pageServiceMock.Setup(x => x.GetById(page.Id, It.IsAny<bool>())).Returns(new PageViewModel() { Id = page.Id, });
 
 			// Act
@@ -293,12 +294,12 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void edit_post_should_return_redirectresult_and_call_pageservice()
+		public void Edit_POST_Should_Return_RedirectResult_And_Call_PageService()
 		{
 			// Arrange
 			_contextStub.CurrentUser = "Admin";
 			Page page = AddDummyPage1();
-			PageContent pageContent = _pageRepository.PageContents[0];
+			PageContent pageContent = _repository.PageContents[0];
 
 			PageViewModel model = new PageViewModel();
 			model.Id = page.Id;
@@ -316,12 +317,12 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 
 			Assert.That(redirectResult.RouteValues["action"], Is.EqualTo("Index"));
 			Assert.That(redirectResult.RouteValues["controller"], Is.EqualTo("Wiki"));
-			Assert.That(_pageRepository.Pages.Count, Is.EqualTo(1));
+			Assert.That(_repository.Pages.Count, Is.EqualTo(1));
 			_pageServiceMock.Verify(x => x.UpdatePage(model));
 		}
 
 		[Test]
-		public void edit_post_with_invalid_data_should_return_view_and_invalid_modelstate()
+		public void Edit_POST_With_Invalid_Data_Should_Return_View_And_Invalid_ModelState()
 		{
 			// Arrange
 			_contextStub.CurrentUser = "Admin";
@@ -340,29 +341,29 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void getpreview_should_return_javascriptresult_and_page_content()
+		public void GetPreview_Should_Return_JavascriptResult_And_Page_Content()
 		{
 			// Arrange
 			_contextStub.CurrentUser = "Admin";
 			Page page = AddDummyPage1();
 
 			// Act
-			ActionResult result = _pagesController.GetPreview(_pageRepository.PageContents[0].Text);
+			ActionResult result = _pagesController.GetPreview(_repository.PageContents[0].Text);
 
 			// Assert
 			_pageServiceMock.Verify(x => x.GetMarkupConverter());
 
 			Assert.That(result, Is.TypeOf<JavaScriptResult>(), "JavaScriptResult");
 			JavaScriptResult javascriptResult = result as JavaScriptResult;
-			Assert.That(javascriptResult.Script, Contains.Substring(_pageRepository.PageContents[0].Text));
+			Assert.That(javascriptResult.Script, Contains.Substring(_repository.PageContents[0].Text));
 		}
 
 		[Test]
-		public void history_returns_viewresult_and_model_with_two_versions()
+		public void History_Returns_ViewResult_And_Model_With_Two_Versions()
 		{
 			// Arrange
 			Page page = AddDummyPage1();
-			_pageRepository.PageContents.Add(new PageContent() { VersionNumber = 2, Page = page, Id = Guid.NewGuid(), Text = "v2text" });
+			_repository.PageContents.Add(new PageContent() { VersionNumber = 2, Page = page, Id = Guid.NewGuid(), Text = "v2text" });
 
 			// Act
 			ActionResult result = _pagesController.History(page.Id);
@@ -380,7 +381,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void new_get_should_return_viewresult()
+		public void New_GET_Should_Return_ViewResult()
 		{
 			// Arrange
 			string title = "my title";
@@ -400,7 +401,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void new_post_should_return_redirectresult_and_call_pageservice()
+		public void New_POST_Should_Return_RedirectResult_And_Call_PageService()
 		{
 			// Arrange
 			PageViewModel model = new PageViewModel();
@@ -410,8 +411,8 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 
 			_pageServiceMock.Setup(x => x.AddPage(model)).Returns(() =>
 			{
-				_pageRepository.Pages.Add(new Page() { Id = 50, Title = model.Title, Tags = model.RawTags });
-				_pageRepository.PageContents.Add(new PageContent() { Id = Guid.NewGuid(), Text = model.Content });
+				_repository.Pages.Add(new Page() { Id = 50, Title = model.Title, Tags = model.RawTags });
+				_repository.PageContents.Add(new PageContent() { Id = Guid.NewGuid(), Text = model.Content });
 				model.Id = 50;
 
 				return model;
@@ -427,12 +428,12 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 
 			Assert.That(redirectResult.RouteValues["action"], Is.EqualTo("Index"));
 			Assert.That(redirectResult.RouteValues["controller"], Is.EqualTo("Wiki"));
-			Assert.That(_pageRepository.Pages.Count, Is.EqualTo(1));
+			Assert.That(_repository.Pages.Count, Is.EqualTo(1));
 			_pageServiceMock.Verify(x => x.AddPage(model));
 		}
 
 		[Test]
-		public void new_post_with_invalid_data_should_return_view_and_invalid_modelstate()
+		public void New_POST_With_Invalid_Data_Should_Return_View_And_Invalid_ModelState()
 		{
 			// Arrange
 			PageViewModel model = new PageViewModel();
@@ -448,7 +449,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void revert_should_return_redirecttorouteresult_with_page_id()
+		public void Revert_Should_Return_RedirectToRouteResult_With_Page_Id()
 		{
 			// Arrange
 			_contextStub.IsAdmin = true;
@@ -457,8 +458,8 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 			Guid version2Guid = Guid.NewGuid();
 			Guid version3Guid = Guid.NewGuid();
 
-			_pageRepository.PageContents.Add(new PageContent() { Id = version2Guid, Page = page, Text = "version2 text" });
-			_pageRepository.PageContents.Add(new PageContent() { Id = version3Guid, Page = page, Text = "version3 text" });
+			_repository.PageContents.Add(new PageContent() { Id = version2Guid, Page = page, Text = "version2 text" });
+			_repository.PageContents.Add(new PageContent() { Id = version3Guid, Page = page, Text = "version3 text" });
 
 			// Act
 			ActionResult result = _pagesController.Revert(version2Guid, page.Id);
@@ -473,7 +474,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void revert_as_editor_and_locked_page_should_return_redirecttorouteresult_to_index()
+		public void Revert_As_Editor_And_Locked_Page_Should_Return_RedirectToRouteResult_To_Index()
 		{
 			// Arrange
 			Page page = AddDummyPage1();
@@ -482,8 +483,8 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 			Guid version2Guid = Guid.NewGuid();
 			Guid version3Guid = Guid.NewGuid();
 
-			_pageRepository.PageContents.Add(new PageContent() { Id = version2Guid, Page = page, Text = "version2 text" });
-			_pageRepository.PageContents.Add(new PageContent() { Id = version3Guid, Page = page, Text = "version3 text" });
+			_repository.PageContents.Add(new PageContent() { Id = version2Guid, Page = page, Text = "version2 text" });
+			_repository.PageContents.Add(new PageContent() { Id = version3Guid, Page = page, Text = "version3 text" });
 
 			// Act
 			ActionResult result = _pagesController.Revert(version2Guid, page.Id);
@@ -498,7 +499,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void tag_returns_viewresult_and_calls_pageservice()
+		public void Tag_Returns_ViewResult_And_Calls_PageService()
 		{
 			// Arrange
 			Page page1 = AddDummyPage1();
@@ -516,7 +517,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void version_should_return_viewresult_and_pagesummary_model()
+		public void Version_Should_Return_ViewResult_And_PageSummary_Model()
 		{
 			// Arrange
 			Page page = AddDummyPage1();
@@ -525,8 +526,8 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 			Guid version2Guid = Guid.NewGuid();
 			Guid version3Guid = Guid.NewGuid();
 
-			_pageRepository.PageContents.Add(new PageContent() { Id = version2Guid, Page = page, Text = "version2 text" });
-			_pageRepository.PageContents.Add(new PageContent() { Id = version3Guid, Page = page, Text = "version3 text" });
+			_repository.PageContents.Add(new PageContent() { Id = version2Guid, Page = page, Text = "version2 text" });
+			_repository.PageContents.Add(new PageContent() { Id = version3Guid, Page = page, Text = "version3 text" });
 
 			// Act
 			ActionResult result = _pagesController.Version(version2Guid);

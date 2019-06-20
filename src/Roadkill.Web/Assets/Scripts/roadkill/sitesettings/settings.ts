@@ -62,7 +62,7 @@ module Roadkill.Web.Admin
 			var jsonData: any =
 			{
 				"connectionString": $("#ConnectionString").val(),
-				"databaseType": $("#DatabaseName").val()
+				"databaseType": $("#DataStoreTypeName").val()
 			};
 
 			// Make sure to use a lambda, so the "this" references is kept intact

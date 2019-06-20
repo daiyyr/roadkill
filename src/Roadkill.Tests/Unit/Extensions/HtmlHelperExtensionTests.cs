@@ -1,17 +1,22 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Web.Mvc;
+using System.Web.Routing;
 using Moq;
 using NUnit.Framework;
 using Roadkill.Core;
 using Roadkill.Core.Configuration;
+using Roadkill.Core.Converters;
 using Roadkill.Core.Extensions;
+using Roadkill.Core.Mvc;
 using Roadkill.Core.Mvc.Controllers;
 using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Core.Services;
-using Roadkill.Tests.Unit.StubsAndMocks;
-using Roadkill.Tests.Unit.StubsAndMocks.Mvc;
 
-namespace Roadkill.Tests.Unit.Extensions
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -21,7 +26,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		private MocksAndStubsContainer _container;
 		private ApplicationSettings _applicationSettings;
 		private IUserContext _context;
-		private PageRepositoryMock _pageRepository;
+		private RepositoryMock _repository;
 		private UserServiceMock _userService;
 		private PageService _pageService;
 		private PageHistoryService _historyService;
@@ -39,7 +44,7 @@ namespace Roadkill.Tests.Unit.Extensions
 
 			_applicationSettings = _container.ApplicationSettings;
 			_context = _container.UserContext;
-			_pageRepository = _container.PageRepository;
+			_repository = _container.Repository;
 			_pluginFactory = _container.PluginFactory;
 			_settingsService = _container.SettingsService;
 			_userService = _container.UserService;
@@ -59,7 +64,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void renderpagebytag_should_return_rendered_html_locked_page_when_multiple_pages_exist_for_tag()
+		public void RenderPageByTag_Should_Return_Rendered_Html_Locked_Page_When_Multiple_Pages_Exist_For_Tag()
 		{
 			// Arrange
 			_pageService.AddPage( new PageViewModel() { Title = "Page1", RawTags = "software,tag2,tag3", IsLocked = true, Content = "page 1 content"});
@@ -73,7 +78,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void renderpagebytag_should_return_rendered_html_for_known_tag()
+		public void RenderPageByTag_Should_Return_Rendered_Html_For_Known_Tag()
 		{
 			// Arrange
 			_pageService.AddPage(new PageViewModel() { Title = "Page1", RawTags = "software, tag2, tag3", IsLocked = true, Content = "page 1 content" });
@@ -87,7 +92,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void renderpagebytag_should_return_empty_string_when_tag_does_not_exist()
+		public void RenderPageByTag_Should_Return_Empty_String_When_Tag_Does_Not_Exist()
 		{
 			// Arrange
 			_pageService.AddPage(new PageViewModel() { Title = "Page1", RawTags = "software, tag2, tag3", Content = "page 1 content" });
@@ -101,7 +106,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void renderpagebytag_should_return_empty_string_when_controller_is_not_wikicontroller()
+		public void RenderPageByTag_Should_Return_Empty_String_When_Controller_Is_Not_WikiController()
 		{
 			// Arrange
 			_viewContext.Controller = new Mock<System.Web.Mvc.ControllerBase>().Object;
@@ -144,7 +149,7 @@ namespace Roadkill.Tests.Unit.Extensions
 
 		[Ignore]
 		[Test]
-		public void sitesettingsnavigation_should_()
+		public void SiteSettingsNavigation_Should_()
 		{
 			// RenderPartials can't be tested without ridiculous amounts of setup
 		}

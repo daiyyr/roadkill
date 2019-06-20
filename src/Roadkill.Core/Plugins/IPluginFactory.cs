@@ -1,14 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using Roadkill.Core.Configuration;
+using Roadkill.Core.Plugins.SpecialPages;
 
 namespace Roadkill.Core.Plugins
 {
 	/// <summary>
-	/// Manage all plugin instances in Roadkill.
+	/// Represents a class that is responsible for managing all plugin instances in Roadkill.
 	/// </summary>
 	public interface IPluginFactory
 	{
+		/// <summary>
+		/// Copies the plugins from the /Plugins directory to the bin folder. This is run at application startup.
+		/// </summary>
+		void CopyPlugins(ApplicationSettings applicationSettings);
+
 		/// <summary>
 		/// Retrieves all text plugins from the DI container.
 		/// </summary>

@@ -2,11 +2,10 @@
 using System.Web;
 using System.Web.Mvc;
 using Roadkill.Core.Configuration;
-using Roadkill.Core.DependencyResolution;
-using Roadkill.Core.Mvc.Controllers;
 using Roadkill.Core.Services;
 using Roadkill.Core.Security;
 using StructureMap.Attributes;
+using Roadkill.Core.DI;
 
 namespace Roadkill.Core.Mvc.Attributes
 {
@@ -44,9 +43,9 @@ namespace Roadkill.Core.Mvc.Attributes
 		protected override bool AuthorizeCore(HttpContextBase httpContext)
 		{
 			if (AuthorizationProvider == null)
-				throw new SecurityException("The OptionalAuthorizationAttribute property has not been set for AdminRequiredAttribute. Has it been injected by the DI?", null);
+				throw new SecurityException("The OptionalAuthorizationAttribute property has not been set for AdminRequiredAttribute.", null);
 
-			if (!ApplicationSettings.Installed)
+			if (!ApplicationSettings.Installed || ApplicationSettings.UpgradeRequired)
 			{
 				return true;
 			}

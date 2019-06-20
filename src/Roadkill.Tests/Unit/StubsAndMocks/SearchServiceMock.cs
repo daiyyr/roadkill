@@ -1,13 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using Roadkill.Core;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
-using Roadkill.Core.Database.Repositories;
+using Roadkill.Core.Services;
 using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Core.Plugins;
-using Roadkill.Core.Services;
 
-namespace Roadkill.Tests.Unit.StubsAndMocks
+namespace Roadkill.Tests.Unit
 {
 	public class SearchServiceMock : SearchService
 	{
@@ -15,8 +17,8 @@ namespace Roadkill.Tests.Unit.StubsAndMocks
 		public List<PageContent> PageContents { get; set; }
 		public bool CreatedNewIndex { get; set; }
 
-		public SearchServiceMock(ApplicationSettings settings, ISettingsRepository settingsRepository, IPageRepository pageRepository, IPluginFactory pluginFactory)
-			: base(settings, settingsRepository, pageRepository, pluginFactory)
+		public SearchServiceMock(ApplicationSettings settings, IRepository repository, IPluginFactory pluginFactory)
+			: base(settings, repository, pluginFactory)
 		{
 			Pages = new List<Page>();
 			PageContents = new List<PageContent>();

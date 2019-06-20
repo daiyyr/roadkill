@@ -1,35 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using NUnit.Framework;
-using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
 
 namespace Roadkill.Tests.Integration.Repository
 {
 	[TestFixture]
-	[Category("Integration")]
-	public abstract class UserRepositoryTests
+	[Category("Unit")]
+	public abstract class UserRepositoryTests : RepositoryTests
 	{
 		protected User _adminUser;
 		protected User _editor;
 		protected User _inactiveUser;
 
-		protected IUserRepository Repository;
-
-		protected abstract string ConnectionString { get; }
-		protected abstract IUserRepository GetRepository();
-		protected abstract void Clearup();
-		protected virtual void CheckDatabaseProcessIsRunning() { }
-
 		[SetUp]
 		public void SetUp()
 		{
-			// Setup the repository
-			CheckDatabaseProcessIsRunning();
-			Repository = GetRepository();
-			Clearup();
-
 			_adminUser = NewUser("admin@localhost", "admin", true, true);
 			_adminUser = Repository.SaveOrUpdateUser(_adminUser);
 
@@ -59,7 +48,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getadminbyid()
+		public void GetAdminById()
 		{
 			// Arrange
 			User expectedUser = _adminUser;
@@ -85,7 +74,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getuserbyactivationkey_with_inactiveuser()
+		public void GetUserByActivationKey_With_InactiveUser()
 		{
 			// Arrange
 			User expectedUser = _inactiveUser;
@@ -111,7 +100,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getuserbyactivationkey_with_activeuser()
+		public void GetUserByActivationKey_With_ActiveUser()
 		{
 			// Arrange
 			User expectedUser = _adminUser;
@@ -124,7 +113,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void geteditorbyid()
+		public void GetEditorById()
 		{
 			// Arrange
 			User expectedUser = _editor;
@@ -152,7 +141,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getuserbyemail()
+		public void GetUserByEmail()
 		{
 			// Arrange
 			User expectedUser = _editor;
@@ -178,7 +167,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getuserbyemail_with_inactive_user_and_no_flag_set_should_return_user()
+		public void GetUserByEmail_With_Inactive_User_And_No_Flag_Set_Should_Return_User()
 		{
 			// Arrange
 			User expectedUser = _inactiveUser;
@@ -201,7 +190,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getuserbyemail_with_inactive_user_and_active_only_flag_should_return_null()
+		public void GetUserByEmail_With_Inactive_User_And_Active_Only_Flag_Should_Return_Null()
 		{
 			// Arrange
 
@@ -213,7 +202,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getuserbyid()
+		public void GetUserById()
 		{
 			// Arrange
 			User expectedUser = _editor;
@@ -239,7 +228,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getuserbyid_should_return_null_when_user_is_inactive_and_active_flag_is_true()
+		public void GetUserById_Should_Return_Null_When_User_Is_InActive_And_Active_Flag_Is_True()
 		{
 			// Arrange
 			User expectedUser = null;
@@ -252,7 +241,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getuserbyid_should_return_user_when_user_is_inactive_and_flag_is_not_set()
+		public void GetUserById_Should_Return_User_When_User_Is_InActive_And_Flag_Is_Not_Set()
 		{
 			// Arrange
 			User expectedUser = _inactiveUser;
@@ -275,7 +264,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getuserbyid_should_return_null_for_active_user_when_flag_is_false()
+		public void GetUserById_Should_Return_Null_For_Active_User_When_Flag_Is_False()
 		{
 			// Arrange
 			User expectedUser = _inactiveUser;
@@ -288,7 +277,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getuserbypasswordresetkey()
+		public void GetUserByPasswordResetKey()
 		{
 			// Arrange
 			User expectedUser = _editor;
@@ -314,7 +303,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getuserbyusername()
+		public void GetUserByUsername()
 		{
 			// Arrange
 			User expectedUser = _editor;
@@ -340,7 +329,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getuserbyusernameoremail()
+		public void GetUserByUsernameOrEmail()
 		{
 			// Arrange
 			User expectedUser = _editor;
@@ -368,7 +357,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void findalleditors()
+		public void FindAllEditors()
 		{
 			// Arrange
 
@@ -381,7 +370,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void findalladmins()
+		public void FindAllAdmins()
 		{
 			// Arrange
 
@@ -394,7 +383,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void deleteuser()
+		public void DeleteUser()
 		{
 			// Arrange
 			User user = Repository.GetUserByUsername("admin");
@@ -408,7 +397,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void deleteallusers()
+		public void DeleteAllUsers()
 		{
 			// Arrange
 
@@ -422,7 +411,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void saveorupdateuser()
+		public void SaveOrUpdateUser()
 		{
 			// Arrange
 			User user = _adminUser;
@@ -442,7 +431,6 @@ namespace Roadkill.Tests.Integration.Repository
 			User actualUser = Repository.GetUserById(user.Id);
 
 			// Assert
-			Assert.That(actualUser, Is.Not.Null);
 			Assert.That(actualUser.Id, Is.EqualTo(user.Id));
 			Assert.That(actualUser.ActivationKey, Is.EqualTo(user.ActivationKey));
 			Assert.That(actualUser.Firstname, Is.EqualTo(user.Firstname));

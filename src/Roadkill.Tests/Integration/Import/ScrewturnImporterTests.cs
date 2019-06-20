@@ -1,28 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using Mindscape.LightSpeed;
+using System.Text;
 using NUnit.Framework;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
 using Roadkill.Core.Database.LightSpeed;
 using Roadkill.Core.Import;
 
-namespace Roadkill.Tests.Integration.Import
+namespace Roadkill.Tests.Integration
 {
 	[TestFixture]
 	[Category("Integration")]
 	public class ScrewturnImporterTests
 	{
-		private string _connectionString = TestConstants.SQLSERVER_CONNECTION_STRING;
+		private string _connectionString = SqlExpressSetup.ConnectionString;
 
 		[SetUp]
 		public void Setup()
 		{
-			TestHelpers.SqlServerSetup.RecreateTables();
+			SqlExpressSetup.RecreateLocalDbData();
 
 			string sqlFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Integration", "Import", "screwturn3.sql");
 			string sqlCommands = File.ReadAllText(sqlFile);
@@ -39,7 +38,7 @@ namespace Roadkill.Tests.Integration.Import
 		}
 
 		[Test]
-		public void should_import_all_pages_categories_and_usernames()
+		public void Should_Import_All_Pages_Categories_And_Usernames()
 		{
 			// Arrange
 			ApplicationSettings applicationSettings = new ApplicationSettings();
@@ -51,71 +50,50 @@ namespace Roadkill.Tests.Integration.Import
 			Directory.CreateDirectory(applicationSettings.AttachmentsFolder);
 
 			applicationSettings.ConnectionString = _connectionString;
-			applicationSettings.DatabaseName = "SqlServer2008";
+			applicationSettings.DataStoreType = DataStoreType.SqlServer2012;
 
-			var context = new LightSpeedContext();
-			context.ConnectionString = _connectionString;
-			context.DataProvider = DataProvider.SqlServer2008;
-			context.IdentityMethod = IdentityMethod.GuidComb;
+			IRepository repository = new LightSpeedRepository(applicationSettings);
+			repository.Startup(applicationSettings.DataStoreType,
+								applicationSettings.ConnectionString,
+								false);
 
-			IUnitOfWork unitOfWork = context.CreateUnitOfWork();
-
-			IPageRepository pageRepository = new LightSpeedPageRepository(unitOfWork);
-			IUserRepository userRepository = new LightSpeedUserRepository(unitOfWork);
-			ScrewTurnImporter importer = new ScrewTurnImporter(applicationSettings, pageRepository, userRepository);
+			// Clear the database
+			repository.Install(applicationSettings.DataStoreType,
+								applicationSettings.ConnectionString,
+								false);
+			ScrewTurnImporter importer = new ScrewTurnImporter(applicationSettings, repository);
 
 			// Act
-			importer.ImportFromSqlServer(TestConstants.SQLSERVER_CONNECTION_STRING);
+			importer.ImportFromSqlServer(SqlExpressSetup.ConnectionString);
 
 			// Assert
-			User user = userRepository.GetUserByUsername("user2");
+			User user = repository.GetUserByUsername("user2");
 			Assert.That(user.Id, Is.Not.EqualTo(Guid.Empty));
 
-			List<Page> pages = pageRepository.AllPages().ToList();
+			List<Page> pages = repository.AllPages().ToList();
 			Assert.That(pages.Count, Is.EqualTo(3));
 
 			Page page1 = pages.FirstOrDefault(x => x.Title == "Screwturn page 1");
-			PageContent pageContent1 = pageRepository.GetLatestPageContent(page1.Id);			
-			Assert.That(page1.Tags, Is.EqualTo("Category1,"));
-
-			AssertSameDateTimes(page1.CreatedOn, "2013-08-11 18:05");
-			AssertSameDateTimes(page1.ModifiedOn, "2013-08-11 18:05");
-
+			PageContent pageContent1 = repository.GetLatestPageContent(page1.Id);			
+			Assert.That(page1.Tags, Is.EqualTo("Category1;"));
+			Assert.That(page1.CreatedOn.ToString("u"), Is.EqualTo("2013-08-11 19:05:49Z"));
+			Assert.That(page1.ModifiedOn.ToString("u"), Is.EqualTo("2013-08-11 19:05:49Z"));
 			Assert.That(page1.CreatedBy, Is.EqualTo("admin"));
 			Assert.That(page1.ModifiedBy, Is.EqualTo("admin"));
 			Assert.That(pageContent1.Text, Is.EqualTo("This is an amazing Screwturn page."));
 
 			Page page2 = pages.FirstOrDefault(x => x.Title == "Screwturn page 2");
-			PageContent pageContent2 = pageRepository.GetLatestPageContent(page2.Id);
-			Assert.That(page2.Tags, Is.EqualTo("Category1,Category2,"));
-
-			AssertSameDateTimes(page2.CreatedOn, "2013-08-11 18:06");
-			AssertSameDateTimes(page2.ModifiedOn, "2013-08-11 18:06");
-
+			PageContent pageContent2 = repository.GetLatestPageContent(page2.Id);
+			Assert.That(page2.Tags, Is.EqualTo("Category1;Category2;"));
+			Assert.That(page2.CreatedOn.ToString("u"), Is.EqualTo("2013-08-11 19:06:54Z"));
+			Assert.That(page2.ModifiedOn.ToString("u"), Is.EqualTo("2013-08-11 19:06:54Z"));
 			Assert.That(page2.CreatedBy, Is.EqualTo("user2"));
 			Assert.That(page2.ModifiedBy, Is.EqualTo("user2"));
 			Assert.That(pageContent2.Text, Is.EqualTo("Amazing screwturn page 2"));
 		}
 
-		/// <summary>
-		/// TODO: fix this UTC date time issue (18:06 but the time is 19:06 in BST)
-		/// </summary>
-		/// <param name="date1"></param>
-		/// <param name="date2Text"></param>
-		private void AssertSameDateTimes(DateTime date1, string date2Text)
-		{
-			// Screwturn dates are assumed to be localtime of the server, and are converted to UTC by Roadkill.
-			date1 = new DateTime(date1.Year, date1.Month, date1.Day, date1.Hour, date1.Minute, 0, DateTimeKind.Utc);
-
-			// date2Text (in the SQL script) is already UTC.
-			DateTime date2 = DateTime.Parse(date2Text, new CultureInfo("en-gb"), DateTimeStyles.AdjustToUniversal);
-			date2 = new DateTime(date2.Year, date2.Month, date2.Day, date2.Hour, date2.Minute, 0);
-
-			Assert.That(date1, Is.GreaterThanOrEqualTo(date2)); // hack for UTC.
-		}
-
 		[Test]
-		public void should_import_files_in_attachments_folder()
+		public void Should_Import_Files_In_Attachments_Folder()
 		{
 			// Arrange
 			ApplicationSettings applicationSettings = new ApplicationSettings();
@@ -127,18 +105,18 @@ namespace Roadkill.Tests.Integration.Import
 			Directory.CreateDirectory(applicationSettings.AttachmentsFolder);
 
 			applicationSettings.ConnectionString = _connectionString;
-			applicationSettings.DatabaseName = "SqlServer2008";
+			applicationSettings.DataStoreType = DataStoreType.SqlServer2012;
 
-			var context = new LightSpeedContext();
-			context.ConnectionString = _connectionString;
-			context.DataProvider = DataProvider.SqlServer2008;
-			context.IdentityMethod = IdentityMethod.GuidComb;
+			IRepository repository = new LightSpeedRepository(applicationSettings);
+			repository.Startup(applicationSettings.DataStoreType,
+								applicationSettings.ConnectionString,
+								false);
 
-			IUnitOfWork unitOfWork = context.CreateUnitOfWork();
-
-			IPageRepository pageRepository = new LightSpeedPageRepository(unitOfWork);
-			IUserRepository userRepository = new LightSpeedUserRepository(unitOfWork);
-			ScrewTurnImporter importer = new ScrewTurnImporter(applicationSettings, pageRepository, userRepository);
+			// Clear the database
+			repository.Install(applicationSettings.DataStoreType,
+								applicationSettings.ConnectionString,
+								false);
+			ScrewTurnImporter importer = new ScrewTurnImporter(applicationSettings, repository);
 
 			// Act
 			importer.ImportFromSqlServer(_connectionString);

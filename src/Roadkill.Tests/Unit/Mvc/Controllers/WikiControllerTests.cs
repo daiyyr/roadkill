@@ -1,18 +1,26 @@
 ﻿using System;
-using System.Web;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Web.Mvc;
-using MvcContrib.TestHelper;
+using Moq;
 using NUnit.Framework;
 using Roadkill.Core;
+using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
-using Roadkill.Core.Database;
 using Roadkill.Core.Mvc.Controllers;
-using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Converters;
+using Roadkill.Core.Database;
+using Roadkill.Core.Localization;
 using Roadkill.Core.Services;
+using Roadkill.Core.Security;
+using Roadkill.Core.Mvc.ViewModels;
+using System.Runtime.Caching;
 using Roadkill.Tests.Unit.StubsAndMocks;
-using Roadkill.Tests.Unit.StubsAndMocks.Mvc;
+using System.Web;
+using MvcContrib.TestHelper;
 
-namespace Roadkill.Tests.Unit.Mvc.Controllers
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -22,7 +30,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 
 		private ApplicationSettings _applicationSettings;
 		private IUserContext _context;
-		private PageRepositoryMock _pageRepository;
+		private RepositoryMock _repository;
 		private UserServiceMock _userService;
 		private PageService _pageService;
 		private PageHistoryService _historyService;
@@ -38,7 +46,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 
 			_applicationSettings = _container.ApplicationSettings;
 			_context = _container.UserContext;	
-			_pageRepository = _container.PageRepository;
+			_repository = _container.Repository;
 			_pluginFactory = _container.PluginFactory;
 			_settingsService = _container.SettingsService;
 			_userService = _container.UserService;
@@ -50,7 +58,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void index_should_return_page()
+		public void Index_Should_Return_Page()
 		{
 			// Arrange
 			Page page1 = new Page()
@@ -65,8 +73,8 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 				Page = page1,
 				Text = "Hello world"
 			};
-			_pageRepository.Pages.Add(page1);
-			_pageRepository.PageContents.Add(page1Content);
+			_repository.Pages.Add(page1);
+			_repository.PageContents.Add(page1Content);
 
 			// Act
 			ActionResult result = _wikiController.Index(50, "");
@@ -81,7 +89,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void index_with_bad_page_id_should_redirect()
+		public void Index_With_Bad_Page_Id_Should_Redirect()
 		{
 			// Arrange
 
@@ -97,7 +105,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void index_with_unknown_page_should_throw_404exception()
+		public void Index_With_Unknown_Page_Should_Throw_404Exception()
 		{
 			// Arrange
 
@@ -120,7 +128,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void servererror_should_return_500_view()
+		public void ServerError_Should_Return_500_View()
 		{
 			// Arrange
 
@@ -133,7 +141,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void notfound_should_return_500_view()
+		public void NotFound_Should_Return_500_View()
 		{
 			// Arrange
 
@@ -146,10 +154,10 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void pagetoolbar_should_return_partialview()
+		public void PageToolbar_Should_Return_PartialView()
 		{
 			// Arrange
-			_pageRepository.AddNewPage(new Page() {Title = "Title" }, "text", "admin", DateTime.UtcNow);
+			_repository.AddNewPage(new Page() {Title = "Title" }, "text", "admin", DateTime.UtcNow);
 
 			// Act
 			ActionResult result = _wikiController.PageToolbar(1);
@@ -160,7 +168,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void pagetoolbar_should_return_empty_content_when_page_cannot_be_found()
+		public void PageToolbar_Should_Return_Empty_Content_When_Page_Cannot_Be_Found()
 		{
 			// Arrange
 
@@ -173,7 +181,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void pagetoolbar_should_return_empty_content_when_id_is_null()
+		public void PageToolbar_Should_Return_Empty_Content_When_Id_Is_Null()
 		{
 			// Arrange
 

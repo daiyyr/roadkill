@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using Roadkill.Core;
+using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
+using Roadkill.Core.Mvc.Controllers.Api;
 using Roadkill.Core.Mvc.ViewModels;
-using Roadkill.Core.Mvc.WebApi;
-using Roadkill.Tests.Unit.StubsAndMocks;
 
-namespace Roadkill.Tests.Unit.Mvc.WebApi
+namespace Roadkill.Tests.Unit.WebApi
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -15,7 +16,10 @@ namespace Roadkill.Tests.Unit.Mvc.WebApi
 	{
 		private MocksAndStubsContainer _container;
 
+		private ApplicationSettings _applicationSettings;
 		private UserServiceMock _userService;
+		private IUserContext _userContext;
+		private RepositoryMock _repositoryMock;
 		private UserController _userController;
 
 		[SetUp]
@@ -23,12 +27,45 @@ namespace Roadkill.Tests.Unit.Mvc.WebApi
 		{
 			_container = new MocksAndStubsContainer();
 
+			_applicationSettings = _container.ApplicationSettings;
+			_userContext = _container.UserContext;
 			_userService = _container.UserService;
-			_userController = new UserController(_userService);
+			_repositoryMock = _container.Repository;
+			_userService = _container.UserService;
+
+			_userController = new UserController(_applicationSettings, _userService, _userContext);
 		}
 
 		[Test]
-		public void get_should_return_user()
+		public void Authenticate_Should_Return_True_User()
+		{
+			// Arrange
+			UserController.UserInfo userInfo = new UserController.UserInfo();
+			userInfo.Email = "admin@localhost";
+			userInfo.Password = "password1";
+
+			_userService.AddUser("admin@localhost", "user", "password1", true, true);
+			_userService.Users[0].IsActivated = true;
+
+			// Act
+			bool isAuthed = _userController.Authenticate(userInfo);
+
+			// Assert
+			Assert.That(isAuthed, Is.True);
+		}
+
+		[Test]
+		public void Logout_Should_User_Service_To_Logout()
+		{
+			// Arrange + Act
+			_userController.Logout();
+
+			// Assert
+			Assert.That(_userService.HasLoggedOut, Is.True);
+		}
+
+		[Test]
+		public void Get_Should_Return_User()
 		{
 			// Arrange
 			_userService.AddUser("admin@localhost", "user", "password1", true, true);
@@ -43,7 +80,7 @@ namespace Roadkill.Tests.Unit.Mvc.WebApi
 		}
 
 		[Test]
-		public void get_should_return_null_when_user_does_not_exist()
+		public void Get_Should_Return_Null_When_User_Does_Not_Exist()
 		{
 			// Arrange
 
@@ -55,7 +92,7 @@ namespace Roadkill.Tests.Unit.Mvc.WebApi
 		}
 
 		[Test]
-		public void get_should_return_inactive_user()
+		public void Get_Should_Return_Inactive_User()
 		{
 			// Arrange
 			_userService.AddUser("admin@localhost", "user", "password1", false, true);
@@ -69,7 +106,7 @@ namespace Roadkill.Tests.Unit.Mvc.WebApi
 		}
 
 		[Test]
-		public void get_should_return_all_editors_and_admins()
+		public void Get_Should_Return_All_Editors_And_Admins()
 		{
 			// Arrange
 			_userService.AddUser("admin@localhost", "user", "password1", true, true);

@@ -1,17 +1,23 @@
-﻿using NUnit.Framework;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Caching;
+using System.Text;
+using NUnit.Framework;
 using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Plugins;
 using Roadkill.Tests.Unit.StubsAndMocks;
 
-namespace Roadkill.Tests.Unit.Mvc.ViewModels
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
 	public class PluginViewModelTests
 	{
 		[Test]
-		public void constructor_should_create_settingvalues()
+		public void Constructor_Should_Create_SettingValues()
 		{
 			// Arrange + Act
 			PluginViewModel model = new PluginViewModel();	
@@ -21,12 +27,12 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void constructor_should_convert_textplugin_to_properties_and_description_newlines_to_br()
+		public void Constructor_Should_Convert_TextPlugin_To_Properties_And_Description_Newlines_To_Br()
 		{
 			// Arrange
 			TextPluginStub plugin = new TextPluginStub("myid", "my name", "my description\r\nsome new text");
-			plugin.Repository = new SettingsRepositoryMock();
-			plugin.PluginCache = new SiteCache(CacheMock.RoadkillCache);
+			plugin.Repository = new RepositoryMock();
+			plugin.PluginCache = new SiteCache(new ApplicationSettings(), CacheMock.RoadkillCache);
 			plugin.Settings.IsEnabled = true;
 
 			// Act

@@ -10,7 +10,6 @@ using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Converters;
 using Roadkill.Core.Database;
-using Roadkill.Core.Database.Repositories;
 using Roadkill.Core.Plugins;
 using Roadkill.Tests.Unit.StubsAndMocks;
 using PluginSettings = Roadkill.Core.Plugins.Settings;
@@ -22,7 +21,7 @@ namespace Roadkill.Tests.Unit.Plugins
 	public class TextPluginTests
 	{
 		[Test]
-		public void databaseid_should_be_different_based_on_id()
+		public void DatabaseId_Should_Be_Different_Based_On_Id()
 		{
 			// Arrange
 			TextPluginStub plugin1 = new TextPluginStub("PluginId1", "name", "desc");
@@ -37,7 +36,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void pluginvirtualpath_should_contain_plugin_id_and_no_trailing_slash()
+		public void PluginVirtualPath_Should_Contain_Plugin_Id_And_No_Trailing_Slash()
 		{
 			// Arrange
 			TextPluginStub plugin = new TextPluginStub("Plugin1", "name", "desc");
@@ -87,9 +86,12 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void constructor_should_set_cacheable_to_true()
+		public void Constructor_Should_Set_Cacheable_To_True()
 		{
 			// Arrange
+			RepositoryMock repository = new RepositoryMock();
+			ApplicationSettings appSettings = new ApplicationSettings();
+
 			TextPluginStub plugin = new TextPluginStub();
 
 			// Act + Assert
@@ -97,24 +99,24 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void settings_should_not_be_null()
+		public void Settings_Should_Not_Be_Null()
 		{
 			// Arrange + act
 			TextPlugin plugin = new TextPluginStub();
-			plugin.Repository = new SettingsRepositoryMock();
-			plugin.PluginCache = new SiteCache(CacheMock.RoadkillCache);
+			plugin.Repository = new RepositoryMock();
+			plugin.PluginCache = new SiteCache(new ApplicationSettings(), CacheMock.RoadkillCache);
 
 			// Assert
 			Assert.That(plugin.Settings, Is.Not.Null);
 		}
 
 		[Test]
-		public void getsettingsjson_should_return_expected_json()
+		public void GetSettingsJson_Should_Return_Expected_Json()
 		{
 			// Arrange
 			TextPluginStub plugin = new TextPluginStub();
-			plugin.Repository = new SettingsRepositoryMock();
-			plugin.PluginCache = new SiteCache(CacheMock.RoadkillCache);
+			plugin.Repository = new RepositoryMock();
+			plugin.PluginCache = new SiteCache(new ApplicationSettings(), CacheMock.RoadkillCache);
 
 			plugin.Settings.SetValue("setting1", "value1");
 			plugin.Settings.SetValue("setting2", "value2");
@@ -147,7 +149,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void getjavascripthtml_should_contain_scripts_with_headjs()
+		public void GetJavascriptHtml_Should_Contain_Scripts_With_HeadJs()
 		{
 			// Arrange
 			TextPlugin plugin = new TextPluginStub();
@@ -164,7 +166,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void setheadjsonloadedfunction_should_be_added_to_javascript()
+		public void SetHeadJsOnLoadedFunction_Should_Be_Added_To_Javascript()
 		{
 			// Arrange
 			TextPluginStub plugin = new TextPluginStub();
@@ -183,7 +185,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void getcsslink_should_contain_file_and_expected_html()
+		public void GetCssLink_Should_Contain_File_And_Expected_Html()
 		{
 			// Arrange
 			TextPluginStub plugin = new TextPluginStub("PluginId", "name", "desc");
@@ -213,25 +215,26 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		[Description("The pageRepository property should be injected at creation time by Structuremap")]
+		[Description("The Repository property should be injected at creation time by Structuremap")]
 		[ExpectedException(typeof(PluginException))]
 		public void Settings_Should_Throw_Exception_If_Repository_Is_Not_Set()
 		{
 			// Arrange
 			TextPluginStub plugin = new TextPluginStub();
-			plugin.PluginCache = new SiteCache(new CacheMock());
+			plugin.PluginCache = new SiteCache(null, new CacheMock());
 
 			// Act + Assert
 			PluginSettings settings = plugin.Settings;
 		}
 
 		[Test]
-		public void settings_should_return_member_instance_on_second_call_and_not_load_from_cache_or_repository()
+		public void Settings_Should_Return_Member_Instance_On_Second_Call_And_Not_Load_From_Cache_Or_Repository()
 		{
 			// Arrange
 			CacheMock cache = new CacheMock();
+			ApplicationSettings appSettings = new ApplicationSettings();
 			Mock<IPluginCache> pluginCacheMock = new Mock<IPluginCache>();
-			Mock<ISettingsRepository> mockRepository = new Mock<ISettingsRepository>();
+			Mock<IRepository> mockRepository = new Mock<IRepository>();
 
 			TextPluginStub plugin = new TextPluginStub();
 			plugin.PluginCache = pluginCacheMock.Object;
@@ -250,9 +253,11 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void settings_should_load_from_cache_when_settings_exist_in_cache()
+		public void Settings_Should_Load_From_Cache_When_Settings_Exist_In_Cache()
 		{
 			// Arrange
+			CacheMock cache = new CacheMock();
+			ApplicationSettings appSettings = new ApplicationSettings();
 			Mock<IPluginCache> pluginCacheMock = new Mock<IPluginCache>();
 			PluginSettings expectedPluginSettings = new PluginSettings("mockplugin", "1.0");
 			expectedPluginSettings.SetValue("cache", "test");
@@ -271,19 +276,21 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void settings_should_load_from_repository_when_cache_is_not_set()
+		public void Settings_Should_Load_From_Repository_When_Cache_Is_Not_Set()
 		{
 			// Arrange
+			CacheMock cache = new CacheMock();
+			ApplicationSettings appSettings = new ApplicationSettings();
 			Mock<IPluginCache> pluginCacheMock = new Mock<IPluginCache>();
 
 			PluginSettings expectedPluginSettings = new PluginSettings("mockplugin", "1.0");
 			expectedPluginSettings.SetValue("repository", "test");
-			var settingsRepositoryMock = new SettingsRepositoryMock();
-			settingsRepositoryMock.PluginSettings = expectedPluginSettings;
+			RepositoryMock repository = new RepositoryMock();
+			repository.PluginSettings = expectedPluginSettings;
 
 			TextPluginStub plugin = new TextPluginStub();
 			plugin.PluginCache = pluginCacheMock.Object;
-			plugin.Repository = settingsRepositoryMock;
+			plugin.Repository = repository;
 
 			// Act
 			PluginSettings actualPluginSettings = plugin.Settings;
@@ -294,15 +301,17 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void settings_should_create_instance_when_repository_has_no_settings()
+		public void Settings_Should_Create_Instance_When_Repository_Has_No_Settings()
 		{
 			// Arrange
+			CacheMock cache = new CacheMock();
+			ApplicationSettings appSettings = new ApplicationSettings();
 			Mock<IPluginCache> pluginCacheMock = new Mock<IPluginCache>();
-			var settingsRepositoryMock = new SettingsRepositoryMock();
+			RepositoryMock repository = new RepositoryMock();
 
 			TextPluginStub plugin = new TextPluginStub();
 			plugin.PluginCache = pluginCacheMock.Object;
-			plugin.Repository = settingsRepositoryMock;
+			plugin.Repository = repository;
 
 			// Act
 			PluginSettings actualPluginSettings = plugin.Settings;
@@ -317,27 +326,31 @@ namespace Roadkill.Tests.Unit.Plugins
 		public void Settings_Should_Throw_Exception_If_Id_Is_Not_Set()
 		{
 			// Arrange
+			CacheMock cache = new CacheMock();
+			ApplicationSettings appSettings = new ApplicationSettings();
 			Mock<IPluginCache> pluginCacheMock = new Mock<IPluginCache>();
-			var settingsRepositoryMock = new SettingsRepositoryMock();
+			RepositoryMock repository = new RepositoryMock();
 
 			TextPluginStub plugin = new TextPluginStub("","","","");
 			plugin.PluginCache = pluginCacheMock.Object;
-			plugin.Repository = settingsRepositoryMock;
+			plugin.Repository = repository;
 
 			// Act + Assert
 			PluginSettings actualPluginSettings = plugin.Settings;
 		}
 
 		[Test]
-		public void settings_should_default_version_to_1_if_version_is_empty()
+		public void Settings_Should_Default_Version_To_1_If_Version_Is_Empty()
 		{
 			// Arrange
+			CacheMock cache = new CacheMock();
+			ApplicationSettings appSettings = new ApplicationSettings();
 			Mock<IPluginCache> pluginCacheMock = new Mock<IPluginCache>();
-			var settingsRepositoryMock = new SettingsRepositoryMock();
+			RepositoryMock repository = new RepositoryMock();
 
 			TextPluginStub plugin = new TextPluginStub("id", "name", "desc", "");
 			plugin.PluginCache = pluginCacheMock.Object;
-			plugin.Repository = settingsRepositoryMock;
+			plugin.Repository = repository;
 
 			// Act
 			PluginSettings actualPluginSettings = plugin.Settings;
@@ -347,16 +360,18 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void settings_should_call_oninitializesettings_when_repository_has_no_settings()
+		public void Settings_Should_Call_OnInitializeSettings_When_Repository_Has_No_Settings()
 		{
 			// Arrange
+			CacheMock cache = new CacheMock();
+			ApplicationSettings appSettings = new ApplicationSettings();
 			Mock<IPluginCache> pluginCacheMock = new Mock<IPluginCache>();
-			var settingsRepositoryMock = new SettingsRepositoryMock();
+			RepositoryMock repository = new RepositoryMock();
 
 			Mock<TextPluginStub> pluginMock = new Mock<TextPluginStub>();
 			pluginMock.Setup(x => x.Id).Returns("SomeId");
 			pluginMock.Object.PluginCache = pluginCacheMock.Object;
-			pluginMock.Object.Repository = settingsRepositoryMock;
+			pluginMock.Object.Repository = repository;
 
 			// Act
 			PluginSettings actualPluginSettings = pluginMock.Object.Settings;
@@ -367,24 +382,25 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void settings_should_save_to_repository_when_repository_has_no_settings()
+		public void Settings_Should_Save_To_Repository_When_Repository_Has_No_Settings()
 		{
 			// Arrange
 			CacheMock cache = new CacheMock();
+			ApplicationSettings appSettings = new ApplicationSettings();
 			Mock<IPluginCache> pluginCacheMock = new Mock<IPluginCache>();
-			var settingsRepositoryMock = new SettingsRepositoryMock();
+			RepositoryMock repository = new RepositoryMock();
 
 			TextPluginStub plugin = new TextPluginStub();
 			plugin.PluginCache = pluginCacheMock.Object;
-			plugin.Repository = settingsRepositoryMock;
+			plugin.Repository = repository;
 
 			// Act
 			PluginSettings actualPluginSettings = plugin.Settings;
 
 			// Assert
 			Assert.That(actualPluginSettings, Is.Not.Null);
-			Assert.That(settingsRepositoryMock.TextPlugins.Count, Is.EqualTo(1));
-			Assert.That(settingsRepositoryMock.TextPlugins.FirstOrDefault(), Is.EqualTo(plugin));
+			Assert.That(repository.TextPlugins.Count, Is.EqualTo(1));
+			Assert.That(repository.TextPlugins.FirstOrDefault(), Is.EqualTo(plugin));
 		}
 	}
 }

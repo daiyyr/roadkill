@@ -1,15 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using NUnit.Framework;
 using Roadkill.Core.Configuration;
 
-namespace Roadkill.Tests.Unit.Database
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
 	public class SiteSettingsTests
 	{
 		[Test]
-		public void deserialize_should_have_correct_values_with_valid_json()
+		public void Deserialize_Should_Have_Correct_Values_With_Valid_Json()
 		{
 			// Arrange
 			string json = @"{
@@ -53,7 +56,7 @@ namespace Roadkill.Tests.Unit.Database
 		}
 
 		[Test]
-		public void deserialize_should_have_correct_values_when_json_has_unknown_properties()
+		public void Deserialize_Should_Have_Correct_Values_When_Json_Has_Unknown_Properties()
 		{
 			// Arrange
 			string json = @"{
@@ -95,7 +98,7 @@ namespace Roadkill.Tests.Unit.Database
 		}
 
 		[Test]
-		public void deserialize_should_have_correct_values_with_fragment_of_json()
+		public void Deserialize_Should_Have_Correct_Values_With_Fragment_Of_Json()
 		{
 			// Arrange
 			string json = @"{
@@ -118,11 +121,11 @@ namespace Roadkill.Tests.Unit.Database
 		}
 
 		[Test]
-		public void deserialize_should_have_default_values_with_empty_json()
+		public void Deserialize_Should_Have_Default_Values_With_Empty_Json()
 		{
 			// Arrange
 			string json = "";
-			DateTime now = DateTime.UtcNow.AddSeconds(-10); // a bit of a bodge
+			DateTime now = DateTime.Now.AddSeconds(-1); // eeek
 
 			// Act
 			SiteSettings settings = SiteSettings.LoadFromJson(json);
@@ -149,11 +152,11 @@ namespace Roadkill.Tests.Unit.Database
 		}
 
 		[Test]
-		public void deserialize_should_have_default_values_with_invalid_json()
+		public void Deserialize_Should_Have_Default_Values_With_Invalid_Json()
 		{
 			// Arrange
 			string json = "asdf";
-			DateTime now = DateTime.Now.ToUniversalTime();
+			DateTime now = DateTime.Now;
 
 			// Act
 			SiteSettings settings = SiteSettings.LoadFromJson(json);
@@ -180,7 +183,7 @@ namespace Roadkill.Tests.Unit.Database
 		}
 
 		[Test]
-		public void deserialize_should_have_default_menumarkup_when_json_value_is_null()
+		public void Deserialize_Should_Have_Default_MenuMarkup_When_Json_Value_Is_Null()
 		{
 			// Arrange
 			string json = @"{
@@ -203,7 +206,7 @@ namespace Roadkill.Tests.Unit.Database
 		}
 
 		[Test]
-		public void getjson_should_return_known_json()
+		public void GetJson_Should_Return_Known_Json()
 		{
 			// Arrange
 			string expectedJson = @"{
@@ -222,7 +225,7 @@ namespace Roadkill.Tests.Unit.Database
   ""PluginLastSaveDate"": ""{today}""
 }";
 
-			expectedJson = expectedJson.Replace("{today}", DateTime.Today.ToUniversalTime().ToString("s") + "Z"); // Z = zero offset from UTC
+			expectedJson = expectedJson.Replace("{today}", DateTime.Today.ToString("s") +"+00:00"); // won't work if the build agent is in a different time zone from UK
 
 			SiteSettings settings = new SiteSettings();
 			settings.AllowedFileTypes = "pdf, swf, avi";
@@ -234,7 +237,7 @@ namespace Roadkill.Tests.Unit.Database
 			settings.SiteUrl = "http://siteurl";
 			settings.SiteName = "my sitename";
 			settings.Theme = "Mytheme";
-			settings.PluginLastSaveDate = DateTime.Today.ToUniversalTime(); // ideally property this would take an IDate...something to refactor in for the future if there are problems.
+			settings.PluginLastSaveDate = DateTime.Today; // ideally property this would take an IDate...something to refactor in for the future if there are problems.
 
 			// Act
 			string actualJson = settings.GetJson();
@@ -245,7 +248,7 @@ namespace Roadkill.Tests.Unit.Database
 
 		// The two previous default value tests might make this test redundant
 		[Test]
-		public void deserialize_should_have_default_values_for_new_v1_8_settings()
+		public void Deserialize_Should_Have_Default_Values_For_New_v1_8_Settings()
 		{
 			// Arrange
 			string json = @"{

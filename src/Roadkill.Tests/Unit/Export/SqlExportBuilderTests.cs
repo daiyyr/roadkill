@@ -1,14 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
 using Roadkill.Core.Database.Export;
+using Roadkill.Core.Plugins;
 using Roadkill.Tests.Unit.StubsAndMocks;
 
-namespace Roadkill.Tests.Unit.Export
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -18,12 +23,11 @@ namespace Roadkill.Tests.Unit.Export
 		// Some full integration tests for each database type can be added if needed later.
 
 		[Test]
-		public void should_export_users_with_all_fieldvalues()
+		public void Should_Export_Users_With_All_FieldValues()
 		{
 			// Arrange
-			var settingsRepository = new SettingsRepositoryMock();
-			var userRepositoryMock = new UserRepositoryMock();
-			settingsRepository.SiteSettings.PluginLastSaveDate = DateTime.Today;
+			RepositoryMock repository = new RepositoryMock();
+			repository.SiteSettings.PluginLastSaveDate = DateTime.Today;
 
 			Guid user1Id = new Guid("29a8ad19-b203-46f5-be10-11e0ebf6f812");
 			Guid user2Id = new Guid("e63b0023-329a-49b9-97a4-5094a0e378a2");
@@ -75,11 +79,11 @@ namespace Roadkill.Tests.Unit.Export
 				Username = "user3"
 			};
 
-			userRepositoryMock.Users.Add(user1);
-			userRepositoryMock.Users.Add(user2);
-			userRepositoryMock.Users.Add(user3);
+			repository.Users.Add(user1);
+			repository.Users.Add(user2);
+			repository.Users.Add(user3);
 
-			SqlExportBuilder builder = new SqlExportBuilder(settingsRepository, userRepositoryMock, new PageRepositoryMock(), new PluginFactoryMock());
+			SqlExportBuilder builder = new SqlExportBuilder(repository, new PluginFactoryMock());
 			builder.IncludeConfiguration = false;
 			builder.IncludePages = false;
 			string expectedSql = ReadEmbeddedResource("expected-users-export.sql");
@@ -92,12 +96,11 @@ namespace Roadkill.Tests.Unit.Export
 		}
 
 		[Test]
-		public void should_export_pages_with_content()
+		public void Should_Export_Pages_With_Content()
 		{
 			// Arrange
-			var settingsRepository = new SettingsRepositoryMock();
-			var pageRepository = new PageRepositoryMock();
-			settingsRepository.SiteSettings.PluginLastSaveDate = DateTime.Today;
+			RepositoryMock repository = new RepositoryMock();
+			repository.SiteSettings.PluginLastSaveDate = DateTime.Today;
 
 			DateTime page1CreatedOn  = new DateTime(2013, 01, 01, 12, 00, 00);
 			DateTime page1ModifiedOn = new DateTime(2013, 01, 01, 13, 00, 00);
@@ -161,16 +164,16 @@ namespace Roadkill.Tests.Unit.Export
 				Title = "Page 3 title"
 			};
 
-			PageContent pageContent1 = pageRepository.AddNewPage(page1, page1Text, "modified-by-user1", page1ModifiedOn);
+			PageContent pageContent1 = repository.AddNewPage(page1, page1Text, "modified-by-user1", page1ModifiedOn);
 			pageContent1.Id = page1ContentId;
 
-			PageContent pageContent2 = pageRepository.AddNewPage(page2, page2Text, "modified-by-user2", page2ModifiedOn);
+			PageContent pageContent2 = repository.AddNewPage(page2, page2Text, "modified-by-user2", page2ModifiedOn);
 			pageContent2.Id = page2ContentId;
 
-			PageContent pageContent3 = pageRepository.AddNewPage(page3, page3Text, "modified-by-user3", page3ModifiedOn);
+			PageContent pageContent3 = repository.AddNewPage(page3, page3Text, "modified-by-user3", page3ModifiedOn);
 			pageContent3.Id = page3ContentId;
 
-			SqlExportBuilder builder = new SqlExportBuilder(settingsRepository, new UserRepositoryMock(), pageRepository, new PluginFactoryMock());
+			SqlExportBuilder builder = new SqlExportBuilder(repository, new PluginFactoryMock());
 			builder.IncludeConfiguration = false;
 			builder.IncludePages = true;
 
@@ -184,34 +187,34 @@ namespace Roadkill.Tests.Unit.Export
 		}
 
 		[Test]
-		public void should_export_siteconfiguration_and_plugin_settings()
+		public void Should_Export_SiteConfiguration_And_Plugin_Settings()
 		{
 			// Arrange
-			var settingsRepository = new SettingsRepositoryMock();
-			settingsRepository.SiteSettings.PluginLastSaveDate = new DateTime(2013, 11, 09, 0, 0, 0);
-			settingsRepository.SiteSettings.AllowedFileTypes = ".exe,.vbscript";
-			settingsRepository.SiteSettings.MenuMarkup = "markup ```''' \r\n";
+			RepositoryMock repository = new RepositoryMock();
+			repository.SiteSettings.PluginLastSaveDate = new DateTime(2013, 11, 09, 0, 0, 0);
+			repository.SiteSettings.AllowedFileTypes = ".exe,.vbscript";
+			repository.SiteSettings.MenuMarkup = "markup ```''' \r\n";
 			
 			// Plugins setup
-			SiteCache siteCache = new SiteCache(new CacheMock());
+			SiteCache siteCache = new SiteCache(new ApplicationSettings(), new CacheMock());
 
 			TextPluginStub plugin1 = new TextPluginStub("fake-plugin1", "fake plugin1", "description 1", "1.1");
 			plugin1.PluginCache = siteCache;
-			plugin1.Repository = settingsRepository;
+			plugin1.Repository = repository;
 			plugin1.Settings.IsEnabled = true;
 			plugin1.Settings.SetValue("key1", "value1");
 			plugin1.Settings.SetValue("key2", "value2");
 
 			TextPluginStub plugin2 = new TextPluginStub("fake-plugin2", "fake plugin2", "description 2", "2.1");
 			plugin2.PluginCache = siteCache;
-			plugin2.Repository = settingsRepository;
+			plugin2.Repository = repository;
 
 			PluginFactoryMock pluginFactory = new PluginFactoryMock();
 			pluginFactory.TextPlugins.Add(plugin1);
 			pluginFactory.TextPlugins.Add(plugin2);
 
 			// SqlExportBuilder
-			SqlExportBuilder builder = new SqlExportBuilder(settingsRepository, new UserRepositoryMock(), new PageRepositoryMock(), pluginFactory);
+			SqlExportBuilder builder = new SqlExportBuilder(repository, pluginFactory);
 			builder.IncludeConfiguration = true;
 			builder.IncludePages = false;
 

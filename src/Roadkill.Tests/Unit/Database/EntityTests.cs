@@ -12,7 +12,7 @@ namespace Roadkill.Tests.Unit.Database
 	public class EntityTests
 	{
 		[Test]
-		public void user_objectid_should_match_id()
+		public void User_ObjectId_Should_Match_Id()
 		{
 			// Arrange
 			User user = new User();
@@ -26,7 +26,7 @@ namespace Roadkill.Tests.Unit.Database
 		}
 
 		[Test]
-		public void pagecontent_objectid_should_match_id()
+		public void PageContent_ObjectId_Should_Match_Id()
 		{
 			// Arrange
 			PageContent page = new PageContent();
@@ -40,7 +40,7 @@ namespace Roadkill.Tests.Unit.Database
 		}
 
 		[Test]
-		public void siteconfigurationentity_objectid_should_match_id()
+		public void SiteConfigurationEntity_ObjectId_Should_Match_Id()
 		{
 			// Arrange
 			SiteConfigurationEntity siteConfigEntity = new SiteConfigurationEntity();

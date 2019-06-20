@@ -4,14 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
 
 namespace Roadkill.Tests.Integration.Repository
 {
 	[TestFixture]
-	[Category("Integration")]
-	public abstract class PageRepositoryTests
+	[Category("Unit")]
+	public abstract class PageRepositoryTests : RepositoryTests
 	{
 		private Page _page1;
 		private PageContent _pageContent1;
@@ -19,24 +18,12 @@ namespace Roadkill.Tests.Integration.Repository
 		private DateTime _createdDate;
 		private DateTime _editedDate;
 
-		protected IPageRepository Repository;
-		protected abstract string ConnectionString { get; }
-		protected abstract IPageRepository GetRepository();
-		protected abstract void Clearup();
-		protected virtual void CheckDatabaseProcessIsRunning() { }
-
 		[SetUp]
 		public void SetUp()
 		{
-			// Setup the repository
-			CheckDatabaseProcessIsRunning();
-			Repository = GetRepository();
-			Clearup();
-
 			// Create 5 Pages with 2 versions of content each
-			var todayUtc = DateTime.Today.ToUniversalTime(); // that's 11pm the previous day
-			_createdDate = todayUtc.AddDays(-1); // that's 11pm, two days ago
-			_editedDate = _createdDate.AddHours(1); // that's 12pm, two days ago
+			_createdDate = DateTime.Today.ToUniversalTime().AddDays(-1);
+			_editedDate = _createdDate.AddHours(1);
 
 			_page1 = NewPage("admin", "homepage, newpage");
 			_pageContent1 = Repository.AddNewPage(_page1, "text", "admin", _createdDate);
@@ -61,12 +48,6 @@ namespace Roadkill.Tests.Integration.Repository
 			Repository.AddNewPageContentVersion(pageContent5.Page, "v2", "editor4", _editedDate, 1);
 		}
 
-		[TearDown]
-		public void TearDown()
-		{
-			Repository.Dispose();
-		}
-
 		protected Page NewPage(string author, string tags = "tag1,tag2,tag3", string title = "Title")
 		{
 			Page page = new Page()
@@ -83,7 +64,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void allpages()
+		public void AllPages()
 		{
 			// Arrange
 
@@ -101,7 +82,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getpagebyid()
+		public void GetPageById()
 		{
 			// Arrange
 
@@ -122,7 +103,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void findpagescreatedby()
+		public void FindPagesCreatedBy()
 		{
 			// Arrange
 
@@ -143,7 +124,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void findpagesbymodifiedby()
+		public void FindPagesByModifiedBy()
 		{
 			// Arrange
 			PageContent newContent = Repository.AddNewPageContentVersion(_page1, "new text", "bob", _createdDate, 3);
@@ -165,7 +146,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void findpagescontainingtag()
+		public void FindPagesContainingTag()
 		{
 			// Arrange
 
@@ -179,7 +160,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void alltags()
+		public void AllTags()
 		{
 			// Arrange
 
@@ -192,7 +173,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getpagebytitle()
+		public void GetPageByTitle()
 		{
 			// Arrange
 			string title = "page title";
@@ -215,7 +196,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getlatestpagecontent()
+		public void GetLatestPageContent()
 		{
 			// Arrange
 			PageContent expectedContent = _pageContent2;
@@ -243,7 +224,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getpagecontentbyid()
+		public void GetPageContentById()
 		{
 			// Arrange
 			PageContent expectedContent = _pageContent2;
@@ -271,7 +252,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void getpagecontentbypageidandversionnumber()
+		public void GetPageContentByPageIdAndVersionNumber()
 		{
 			// Arrange
 			PageContent expectedContent = _pageContent2;
@@ -299,7 +280,19 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void findpagecontentsbypageid()
+		public void GetPageContentByEditedBy()
+		{
+			// Arrange
+
+			// Act
+			List<PageContent> allContent = Repository.GetPageContentByEditedBy("admin").ToList();
+
+			// Assert
+			Assert.That(allContent.Count, Is.EqualTo(2));
+		}
+
+		[Test]
+		public void FindPageContentsByPageId()
 		{
 			// Arrange
 
@@ -316,7 +309,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void findpagecontentseditedby()
+		public void FindPageContentsEditedBy()
 		{
 			// Arrange
 
@@ -333,7 +326,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void allpagecontents()
+		public void AllPageContents()
 		{
 			// Arrange
 
@@ -350,7 +343,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void deletepage_test()
+		public void DeletePage_Test()
 		{
 			// Arrange
 			Page page = Repository.GetPageById(1);
@@ -364,7 +357,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void deletepagecontent()
+		public void DeletePageContent()
 		{
 			// Arrange
 			PageContent pageContent = Repository.GetLatestPageContent(1);
@@ -379,7 +372,7 @@ namespace Roadkill.Tests.Integration.Repository
 
 
 		[Test]
-		public void saveorupdatepage()
+		public void SaveOrUpdatePage()
 		{
 			// Arrange
 			Page newPage = NewPage("admin", "tag1, 3, 4");
@@ -404,7 +397,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void addnewpage()
+		public void AddNewPage()
 		{
 			// Arrange
 			Page newPage = NewPage("admin", "tag1,3,4");
@@ -431,7 +424,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void addnewpagecontentversion()
+		public void AddNewPageContentVersion()
 		{
 			// Arrange
 			Page existingPage = _page1;
@@ -455,7 +448,7 @@ namespace Roadkill.Tests.Integration.Repository
 		}
 
 		[Test]
-		public void updatepagecontent()
+		public void UpdatePageContent()
 		{
 			// Arrange
 			DateTime editedDate = _editedDate.AddMinutes(10);

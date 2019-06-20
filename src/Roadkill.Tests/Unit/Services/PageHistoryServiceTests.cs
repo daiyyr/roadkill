@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Caching;
+using System.Web;
+using Moq;
 using NUnit.Framework;
 using Roadkill.Core;
+using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
-using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Core.Services;
+using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Security;
 using Roadkill.Tests.Unit.StubsAndMocks;
 
-namespace Roadkill.Tests.Unit.Services
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -22,7 +27,7 @@ namespace Roadkill.Tests.Unit.Services
 		private MocksAndStubsContainer _container;
 
 		private ApplicationSettings _applicationSettings;
-		private PageRepositoryMock _pageRepository;
+		private RepositoryMock _repository;
 		private UserServiceMock _userService;
 		private PageHistoryService _historyService;
 
@@ -36,7 +41,7 @@ namespace Roadkill.Tests.Unit.Services
 
 			_applicationSettings = _container.ApplicationSettings;
 			_context = _container.UserContext;	
-			_pageRepository = _container.PageRepository;
+			_repository = _container.Repository;
 			_userService = _container.UserService;
 			_historyService = _container.HistoryService;
 
@@ -51,15 +56,15 @@ namespace Roadkill.Tests.Unit.Services
 		}
 
 		[Test]
-		public void compareversions_has_last_two_versions()
+		public void CompareVersions_Has_Last_Two_Versions()
 		{
 			// Arrange
 			DateTime createdDate = DateTime.Today.AddDays(-1);
 			Page page = NewPage("admin");
-			PageContent v1Content = _pageRepository.AddNewPage(page, "v1 text", "admin", createdDate);
-			PageContent v2Content = _pageRepository.AddNewPageContentVersion(page, "v2 text", "admin", createdDate.AddHours(1), 2);
-			PageContent v3Content = _pageRepository.AddNewPageContentVersion(page, "v3 text", "admin", createdDate.AddHours(2), 3);
-			PageContent v4Content = _pageRepository.AddNewPageContentVersion(page, "v4 text", "admin", createdDate.AddHours(3), 4);
+			PageContent v1Content = _repository.AddNewPage(page, "v1 text", "admin", createdDate);
+			PageContent v2Content = _repository.AddNewPageContentVersion(page, "v2 text", "admin", createdDate.AddHours(1), 2);
+			PageContent v3Content = _repository.AddNewPageContentVersion(page, "v3 text", "admin", createdDate.AddHours(2), 3);
+			PageContent v4Content = _repository.AddNewPageContentVersion(page, "v4 text", "admin", createdDate.AddHours(3), 4);
 
 			// Act
 			List<PageViewModel> versionList = _historyService.CompareVersions(v4Content.Id).ToList();
@@ -71,11 +76,11 @@ namespace Roadkill.Tests.Unit.Services
 		}
 
 		[Test]
-		public void compareversions_with_one_page_version_returns_one_item()
+		public void CompareVersions_With_One_Page_Version_Returns_One_Item()
 		{
 			// Arrange
 			Page page = NewPage("admin");
-			PageContent v1Content = _pageRepository.AddNewPage(page, "v1 text", "admin", DateTime.Today.AddDays(-1));
+			PageContent v1Content = _repository.AddNewPage(page, "v1 text", "admin", DateTime.Today.AddDays(-1));
 
 			// Act
 			List<PageViewModel> versionList = _historyService.CompareVersions(v1Content.Id).ToList();
@@ -87,12 +92,12 @@ namespace Roadkill.Tests.Unit.Services
 		}
 
 		[Test]
-		public void gethistory_returns_correct_items()
+		public void GetHistory_Returns_Correct_Items()
 		{
 			// Arrange
 			Page page = NewPage("admin");
-			PageContent v1Content = _pageRepository.AddNewPage(page, "v1 text", "admin", DateTime.Today.AddDays(-1));
-			PageContent v2Content = _pageRepository.AddNewPageContentVersion(page, "v2 text", "admin", DateTime.Today.AddDays(-1).AddHours(1), 2);
+			PageContent v1Content = _repository.AddNewPage(page, "v1 text", "admin", DateTime.Today.AddDays(-1));
+			PageContent v2Content = _repository.AddNewPageContentVersion(page, "v2 text", "admin", DateTime.Today.AddDays(-1).AddHours(1), 2);
 
 			page = v2Content.Page; // update the id
 			page.IsLocked = true;
@@ -112,15 +117,15 @@ namespace Roadkill.Tests.Unit.Services
 		}
 
 		[Test]
-		public void gethistory_returns_items_in_correct_order()
+		public void GetHistory_Returns_Items_In_Correct_Order()
 		{
 			// Arrange
 			DateTime createdDate = DateTime.Today.AddDays(-1);
 			Page page = NewPage("admin");
-			PageContent v1Content = _pageRepository.AddNewPage(page, "v1 text", "admin", createdDate);
-			PageContent v2Content = _pageRepository.AddNewPageContentVersion(page, "v2 text", "admin", createdDate.AddHours(1), 2);
-			PageContent v3Content = _pageRepository.AddNewPageContentVersion(page, "v3 text", "admin", createdDate.AddHours(2), 3);
-			PageContent v4Content = _pageRepository.AddNewPageContentVersion(page, "v4 text", "admin", createdDate.AddHours(3), 4);
+			PageContent v1Content = _repository.AddNewPage(page, "v1 text", "admin", createdDate);
+			PageContent v2Content = _repository.AddNewPageContentVersion(page, "v2 text", "admin", createdDate.AddHours(1), 2);
+			PageContent v3Content = _repository.AddNewPageContentVersion(page, "v3 text", "admin", createdDate.AddHours(2), 3);
+			PageContent v4Content = _repository.AddNewPageContentVersion(page, "v4 text", "admin", createdDate.AddHours(3), 4);
 
 			// Act
 			List<PageHistoryViewModel> historyList = _historyService.GetHistory(v1Content.Page.Id).ToList();
@@ -134,16 +139,16 @@ namespace Roadkill.Tests.Unit.Services
 		}
 
 		[Test]
-		public void maxversion_returns_correct_version_number()
+		public void MaxVersion_Returns_Correct_Version_Number()
 		{
 			// Arrange
 			DateTime createdDate = DateTime.Today.AddDays(-1);
 			Page page = NewPage("admin");
-			PageContent v1Content = _pageRepository.AddNewPage(page, "v1 text", "admin", createdDate);
+			PageContent v1Content = _repository.AddNewPage(page, "v1 text", "admin", createdDate);
 			page = v1Content.Page;
-			PageContent v2Content = _pageRepository.AddNewPageContentVersion(page, "v2 text", "admin", createdDate.AddHours(1), 2);
-			PageContent v3Content = _pageRepository.AddNewPageContentVersion(page, "v3 text", "admin", createdDate.AddHours(2), 3);
-			PageContent v4Content = _pageRepository.AddNewPageContentVersion(page, "v4 text", "admin", createdDate.AddHours(3), 4);
+			PageContent v2Content = _repository.AddNewPageContentVersion(page, "v2 text", "admin", createdDate.AddHours(1), 2);
+			PageContent v3Content = _repository.AddNewPageContentVersion(page, "v3 text", "admin", createdDate.AddHours(2), 3);
+			PageContent v4Content = _repository.AddNewPageContentVersion(page, "v4 text", "admin", createdDate.AddHours(3), 4);
 
 			int expectedVersion = 4;
 
@@ -155,19 +160,19 @@ namespace Roadkill.Tests.Unit.Services
 		}
 
 		[Test]
-		public void revertto_with_versionid_should_add_new_version()
+		public void RevertTo_With_VersionId_Should_Add_New_Version()
 		{
 			// Arrange
 			DateTime createdDate = DateTime.Today.AddDays(-1);
 			_context.CurrentUser = "someoneelse";
 			Page page = NewPage("admin");
-			PageContent v1Content = _pageRepository.AddNewPage(page, "v1 text", "admin", createdDate);
+			PageContent v1Content = _repository.AddNewPage(page, "v1 text", "admin", createdDate);
 			page = v1Content.Page;
-			PageContent v2Content = _pageRepository.AddNewPageContentVersion(page, "v2 text", "admin", createdDate.AddHours(1), 2);
+			PageContent v2Content = _repository.AddNewPageContentVersion(page, "v2 text", "admin", createdDate.AddHours(1), 2);
 
 			// Act
 			_historyService.RevertTo(v1Content.Id, _context);
-			PageContent actualContent = _pageRepository.GetLatestPageContent(page.Id);
+			PageContent actualContent = _repository.GetLatestPageContent(page.Id);
 
 			// Assert
 			Assert.That(actualContent.VersionNumber, Is.EqualTo(3));
@@ -176,18 +181,18 @@ namespace Roadkill.Tests.Unit.Services
 		}
 
 		[Test]
-		public void revertto_with_pageid_should_add_new_version()
+		public void RevertTo_With_PageId_Should_Add_New_Version()
 		{
 			// Arrange
 			DateTime createdDate = DateTime.Today.AddDays(-1);
 			Page page = NewPage("admin");
-			PageContent v1Content = _pageRepository.AddNewPage(page, "v1 text", "admin", createdDate);
+			PageContent v1Content = _repository.AddNewPage(page, "v1 text", "admin", createdDate);
 			page = v1Content.Page;
-			PageContent v2Content = _pageRepository.AddNewPageContentVersion(page, "v2 text", "admin", createdDate.AddHours(1), 2);
+			PageContent v2Content = _repository.AddNewPageContentVersion(page, "v2 text", "admin", createdDate.AddHours(1), 2);
 
 			// Act
 			_historyService.RevertTo(page.Id, 1);
-			PageContent actualContent = _pageRepository.GetLatestPageContent(page.Id);
+			PageContent actualContent = _repository.GetLatestPageContent(page.Id);
 
 			// Assert
 			Assert.That(actualContent.VersionNumber, Is.EqualTo(3));

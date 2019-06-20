@@ -1,7 +1,11 @@
-﻿using System.Web;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Web;
 using Moq;
 
-namespace Roadkill.Tests.Unit.StubsAndMocks.Mvc
+namespace Roadkill.Tests.Unit
 {
 	/// <summary>
 	/// Provides access to the Mock objects for the MVC mock helper extention methods.

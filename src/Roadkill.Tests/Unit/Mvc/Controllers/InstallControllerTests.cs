@@ -1,34 +1,62 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Web.Mvc;
 using Moq;
-using MvcContrib.TestHelper;
 using NUnit.Framework;
+using Roadkill.Core;
+using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
-using Roadkill.Core.Database;
-using Roadkill.Core.DependencyResolution;
 using Roadkill.Core.Mvc.Controllers;
-using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Converters;
+using Roadkill.Core.Database;
+using Roadkill.Core.Localization;
 using Roadkill.Core.Services;
+using Roadkill.Core.Security;
+using Roadkill.Core.Mvc.ViewModels;
+using System.Runtime.Caching;
+using System.Threading;
 using Roadkill.Tests.Unit.StubsAndMocks;
+using MvcContrib.TestHelper;
+using Roadkill.Core.DI;
+using StructureMap;
 
-namespace Roadkill.Tests.Unit.Mvc.Controllers
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
 	public class InstallControllerTests
 	{
-		private ApplicationSettings _applicationSettings;
-		private ConfigReaderWriterStub _configReaderWriter;
-		private InstallController _installController;
-		private RepositoryFactoryMock _repositoryFactory;
 		private MocksAndStubsContainer _container;
-		private SettingsService _settingsService;
+
+		private ApplicationSettings _applicationSettings;
+		private IUserContext _context;
+		private RepositoryMock _repository;
 		private UserServiceMock _userService;
-		private InstallationService _installationService;
-		private DatabaseTesterMock _databaseTester;
-		private InstallerRepositoryMock _installerRepository;
+		private PageService _pageService;
+		private PageHistoryService _historyService;
+		private SettingsService _settingsService;
+		private PluginFactoryMock _pluginFactory;
+		private SearchServiceMock _searchService;
+		private ConfigReaderWriterStub _configReaderWriter;
+
+		private InstallController _installController;
+		private List<DataStoreType> _defaultDataStoreTypes;
+
+		[TestFixtureSetUp]
+		public void TestFixtureSetUp()
+		{
+			// This is a bit nasty - take the original *STATIC* list of types and reset them once done
+			// (The refactor alternative to this would be the DataStoreType to take a factory of some sort)
+			_defaultDataStoreTypes = DataStoreType.AllTypes.ToList();
+		}
+
+		[TestFixtureTearDown]
+		public void TestFixtureTearDown()
+		{
+			DataStoreType.AllTypes = _defaultDataStoreTypes;
+		}
 
 		[SetUp]
 		public void Setup()
@@ -38,19 +66,126 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 			_applicationSettings = _container.ApplicationSettings;
 			_applicationSettings.Installed = false;
 
+			_context = _container.UserContext;
+			_repository = _container.Repository;
+			_pluginFactory = _container.PluginFactory;
 			_settingsService = _container.SettingsService;
 			_userService = _container.UserService;
-			_configReaderWriter = _container.ConfigReaderWriter;
-			_repositoryFactory = _container.RepositoryFactory;
-			_installationService = _container.InstallationService;
-			_databaseTester = _container.DatabaseTester;
-			_installerRepository = _container.InstallerRepository;
+			_historyService = _container.HistoryService;
+			_pageService = _container.PageService;
+			_searchService = _container.SearchService;
+			_configReaderWriter = new ConfigReaderWriterStub();
 
-            _installController = new InstallController(_applicationSettings, _configReaderWriter, _installationService, _databaseTester);
+			_installController = new InstallController(_applicationSettings, _userService, _pageService, _searchService, _repository, _settingsService, _context, _configReaderWriter);
 		}
 
 		[Test]
-		public void index__should_return_viewresult_and_model_with_languagemodels_and_set_uilanguage_to_english()
+		public void Index_Should_Redirect_When_Installed_Is_True()
+		{
+			// Arrange
+			_applicationSettings.Installed = true;
+
+			// Act
+			ActionResult result = _installController.Index();
+
+			// Assert
+			RedirectToRouteResult redirectResult = result.AssertResultIs<RedirectToRouteResult>();
+			redirectResult.AssertActionRouteIs("Index");
+			redirectResult.AssertControllerRouteIs("Home");
+		}
+
+		[Test]
+		public void Step1_Should_Redirect_When_Installed_Is_True()
+		{
+			// Arrange
+			_applicationSettings.Installed = true;
+
+			// Act
+			ActionResult result = _installController.Step1("en");
+
+			// Assert
+			RedirectToRouteResult redirectResult = result.AssertResultIs<RedirectToRouteResult>();
+			redirectResult.AssertActionRouteIs("Index");
+			redirectResult.AssertControllerRouteIs("Home");
+		}
+
+		[Test]
+		public void Step2_Should_Redirect_When_Installed_Is_True()
+		{
+			// Arrange
+			_applicationSettings.Installed = true;
+
+			// Act
+			ActionResult result = _installController.Step2("en");
+
+			// Assert
+			RedirectToRouteResult redirectResult = result.AssertResultIs<RedirectToRouteResult>();
+			redirectResult.AssertActionRouteIs("Index");
+			redirectResult.AssertControllerRouteIs("Home");
+		}
+
+		[Test]
+		public void Step3_Should_Redirect_When_Installed_Is_True()
+		{
+			// Arrange
+			_applicationSettings.Installed = true;
+
+			// Act
+			ActionResult result = _installController.Step3(new SettingsViewModel());
+
+			// Assert
+			RedirectToRouteResult redirectResult = result.AssertResultIs<RedirectToRouteResult>();
+			redirectResult.AssertActionRouteIs("Index");
+			redirectResult.AssertControllerRouteIs("Home");
+		}
+
+		[Test]
+		public void Step3b_Should_Redirect_When_Installed_Is_True()
+		{
+			// Arrange
+			_applicationSettings.Installed = true;
+
+			// Act
+			ActionResult result = _installController.Step3b(new SettingsViewModel());
+
+			// Assert
+			RedirectToRouteResult redirectResult = result.AssertResultIs<RedirectToRouteResult>();
+			redirectResult.AssertActionRouteIs("Index");
+			redirectResult.AssertControllerRouteIs("Home");
+		}
+
+		[Test]
+		public void Step4_Should_Redirect_When_Installed_Is_True()
+		{
+			// Arrange
+			_applicationSettings.Installed = true;
+
+			// Act
+			ActionResult result = _installController.Step4(new SettingsViewModel());
+
+			// Assert
+			RedirectToRouteResult redirectResult = result.AssertResultIs<RedirectToRouteResult>();
+			redirectResult.AssertActionRouteIs("Index");
+			redirectResult.AssertControllerRouteIs("Home");
+		}
+
+		[Test]
+		public void Step5_Should_Redirect_When_Installed_Is_True()
+		{
+			// Arrange
+			_applicationSettings.Installed = true;
+
+			// Act
+			ActionResult result = _installController.Step5(new SettingsViewModel());
+
+			// Assert
+			RedirectToRouteResult redirectResult = result.AssertResultIs<RedirectToRouteResult>();
+			redirectResult.AssertActionRouteIs("Index");
+			redirectResult.AssertControllerRouteIs("Home");
+		}
+
+		[Test]
+		public void Index__Should_Return_ViewResult_And_Model_With_LanguageModels_And_Set_UILanguage_To_English()
 		{
 			// Arrange
 
@@ -68,7 +203,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void step1_should_return_viewresult_with_languageviewmodel_and_set_uiculture_from_language()
+		public void Step1_Should_Return_ViewResult_With_LanguageViewModel_And_Set_UICulture_From_Language()
 		{
 			// Arrange
 			string hinduCode = "hi";
@@ -88,7 +223,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void step2_should_return_viewresult_with_settingsviewmodel()
+		public void Step2_Should_Return_ViewResult_With_SettingsViewModel()
 		{
 			// Arrange
 			string hinduCode = "hi";
@@ -105,7 +240,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void step2_should_set_uiculture_from_language_and_update_config()
+		public void Step2_Should_Set_UICulture_From_Language_And_Update_Config()
 		{
 			// Arrange
 			string hinduCode = "hi";
@@ -119,7 +254,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void step3_should_return_viewresult_with_settingsviewmodel()
+		public void Step3_Should_Return_ViewResult_With_SettingsViewModel()
 		{
 			// Arrange
 			SettingsViewModel existingModel = new SettingsViewModel();
@@ -145,7 +280,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void step3b_should_return_database_viewresult_when_windowsauth_is_false()
+		public void Step3b_Should_Return_Database_ViewResult_When_WindowsAuth_Is_False()
 		{
 			// Arrange
 			SettingsViewModel existingModel = new SettingsViewModel();
@@ -160,7 +295,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void step3b_should_return_windowsauth_viewresult_when_windowsauth_is_true()
+		public void Step3b_Should_Return_WindowsAuth_ViewResult_When_WindowsAuth_Is_True()
 		{
 			// Arrange
 			SettingsViewModel existingModel = new SettingsViewModel();
@@ -175,7 +310,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void step3b_should_set_model_default_roles_and_ldap_connectionstring()
+		public void Step3b_Should_Set_Model_Default_Roles_And_LDAP_ConnectionString()
 		{
 			// Arrange
 			SettingsViewModel existingModel = new SettingsViewModel();
@@ -196,7 +331,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void step4_should_set_model_defaults_for_attachments_theme_and_cache()
+		public void Step4_Should_Set_Model_Defaults_For_Attachments_Theme_And_Cache()
 		{
 			// Arrange
 			SettingsViewModel existingModel = new SettingsViewModel();
@@ -220,10 +355,11 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void step5_should_finalize_setup()
+		public void Step5_Should_Finalize_Setup()
 		{
 			// Arrange
 			SettingsViewModel existingModel = new SettingsViewModel();
+			SetMockDataStoreType(existingModel);
 
 			// Act
 			ActionResult result = _installController.Step5(existingModel);
@@ -237,26 +373,32 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void step5_should_reset_install_state_and_add_modelstate_error_when_exception_is_thrown()
+		[Description("This test will also test the Finalize method's datastoretype parsing and changing the repository")]
+		public void Step5_Should_Reset_Install_State_And_Add_ModelState_Error_When_Exception_Is_Thrown()
 		{
 			// Arrange
-			SettingsViewModel existingModel = null; // test using a null reference exception
+			string exceptionMessage = RepositoryThrowsExceptionsMock.ExceptionMessage;
+
+			SettingsViewModel existingModel = new SettingsViewModel();
+			SetMockDataStoreType(existingModel);
+			DataStoreType.AllTypes.First().CustomRepositoryType = typeof(RepositoryThrowsExceptionsMock).AssemblyQualifiedName;
 
 			// Act
-			_installController.Step5(existingModel);
+			ActionResult result = _installController.Step5(existingModel);
 
 			// Assert
 			Assert.That(_configReaderWriter.InstallStateReset, Is.True);
 
-			string error = _installController.ModelState["An error occurred installing"].Errors[0].ErrorMessage;
-			Assert.That(error, Is.StringStarting("Object reference not set to an instance of an object"), error);
+			string error = _installController.ModelState["An error ocurred installing"].Errors[0].ErrorMessage;
+			Assert.That(error, Is.StringStarting(exceptionMessage), error);
 		}
 
 		[Test]
-		public void finalize_should_set_publicsite_and_ignoresearcherrors_to_true()
+		public void Finalize_Should_Set_PublicSite_And_IgnoreSearchErrors_To_True()
 		{
 			// Arrange
 			SettingsViewModel existingModel = new SettingsViewModel();
+			SetMockDataStoreType(existingModel);
 
 			// Act
 			_installController.FinalizeInstall(existingModel);
@@ -267,11 +409,12 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void finalize_should_save_config_settings()
+		public void Finalize_Should_Save_Config_Settings()
 		{
 			// Arrange
 			SettingsViewModel existingModel = new SettingsViewModel();
 			existingModel.Theme = "Responsive"; // don't test everything, that's done elsewhere in the ConfigReaderWriterTests
+			SetMockDataStoreType(existingModel);
 
 			// Act
 			_installController.FinalizeInstall(existingModel);
@@ -281,9 +424,60 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void unattendedsetup_should_add_admin_user_and_set_default_site_settings()
+		public void Finalize_Should_Install_And_Save_Site_Settings()
 		{
 			// Arrange
+			SettingsViewModel existingModel = new SettingsViewModel();
+			existingModel.Theme = "ChewbaccaOnHolidayTheme";
+			SetMockDataStoreType(existingModel);
+
+			// Act
+			_installController.FinalizeInstall(existingModel);
+
+			// Assert
+			RepositoryMock repository = (RepositoryMock) ObjectFactory.GetInstance<IRepository>();
+			Assert.That(repository.Installed, Is.True);
+			SiteSettings settings = _settingsService.GetSiteSettings();
+			Assert.That(settings.Theme, Is.EqualTo("ChewbaccaOnHolidayTheme"));
+		}
+
+		[Test]
+		public void Finalize_Should_Add_AdminUser_When_Windows_Auth_Is_False()
+		{
+			// Arrange
+			SettingsViewModel existingModel = new SettingsViewModel();
+			existingModel.UseWindowsAuth = false;
+			SetMockDataStoreType(existingModel);
+
+			// Act
+			_installController.FinalizeInstall(existingModel);
+
+			// Assert
+			UserViewModel adminUser = _userService.ListAdmins().FirstOrDefault();
+			Assert.That(adminUser, Is.Not.Null);
+		}
+
+		[Test]
+		public void UnattendedSetup_Should_Redirect_When_Installed_Is_True()
+		{
+			// Arrange
+			_applicationSettings.Installed = true;
+
+			// Act
+			ActionResult result = _installController.Unattended("mock datastore", "fake connection string");
+
+			// Assert
+			RedirectToRouteResult redirectResult = result.AssertResultIs<RedirectToRouteResult>();
+			redirectResult.AssertActionRouteIs("Index");
+			redirectResult.AssertControllerRouteIs("Home");
+		}
+
+		[Test]
+		public void UnattendedSetup_Should_Add_Admin_User_And_Set_Default_Site_Settings()
+		{
+			// Arrange
+			SettingsViewModel existingModel = new SettingsViewModel();
+			SetMockDataStoreType(existingModel);
 
 			// Act
 			ActionResult result = _installController.Unattended("mock datastore", "fake connection string");
@@ -292,15 +486,16 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 			ContentResult contentResult = result.AssertResultIs<ContentResult>();
 			Assert.That(contentResult.Content, Is.EqualTo("Unattended installation complete"));
 
-			Assert.That(_installerRepository.AddAdminUserCalled, Is.True);
-			Assert.That(_installerRepository.DatabaseName, Is.EqualTo("mock datastore"));
-			Assert.That(_installerRepository.ConnectionString, Is.EqualTo("fake connection string"));
+			UserViewModel adminUser = _userService.ListAdmins().FirstOrDefault(); // check admin
+			Assert.That(adminUser, Is.Not.Null);
 
 			ApplicationSettings appSettings = _configReaderWriter.ApplicationSettings; // check settings
+			Assert.That(appSettings.DataStoreType.Name, Is.EqualTo("mock datastore"));
+			Assert.That(appSettings.ConnectionString, Is.EqualTo("fake connection string"));
 			Assert.That(appSettings.UseObjectCache, Is.True);
 			Assert.That(appSettings.UseBrowserCache, Is.True);
 
-			SiteSettings settings = _installerRepository.SiteSettings;	
+			SiteSettings settings = _settingsService.GetSiteSettings();		
 			Assert.That(settings.AllowedFileTypes, Is.EqualTo("jpg,png,gif,zip,xml,pdf"));
 			Assert.That(settings.MarkupType, Is.EqualTo("Creole"));
 			Assert.That(settings.Theme, Is.EqualTo("Responsive"));
@@ -309,7 +504,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void installerjsvars_should_return_view()
+		public void InstallerJsVars_Should_Return_View()
 		{
 			// Arrange
 
@@ -320,29 +515,33 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 			ViewResult viewResult = result.AssertResultIs<ViewResult>();
 			viewResult.AssertViewRendered();
 		}
-
+		
 		[Test]
-		public void finalize_should_install_and_save_site_settings()
+		public void InstallerJsVars_Should_Redirect_When_Installed_Is_True()
 		{
 			// Arrange
-			var model = new SettingsViewModel();
-			model.AdminEmail = "email";
-			model.AdminPassword = "password";
-			model.Theme = "ConcupiscentGoatOnHolidayTheme";
-
-			var installationServiceMock = new Mock<IInstallationService>();
-			_installController = new InstallController(_applicationSettings, _configReaderWriter, installationServiceMock.Object, _databaseTester);
+			_applicationSettings.Installed = true;
 
 			// Act
-			_installController.FinalizeInstall(model);
+			ActionResult result = _installController.InstallerJsVars();
 
 			// Assert
-			Assert.That(model.IgnoreSearchIndexErrors, Is.True);
-			Assert.That(model.IsPublicSite, Is.True);
+			ContentResult contentResult = result.AssertResultIs<ContentResult>();
+			Assert.That(contentResult.Content, Is.Empty);
+		}
 
-			installationServiceMock.Verify(service => service.Install(model));
+		/// <summary>
+		/// Resets DataStoreType.AllTypes to have just one type, "mock datastore"
+		/// </summary>
+		/// <param name="existingModel"></param>
+		private void SetMockDataStoreType(SettingsViewModel existingModel)
+		{
+			string typeName = typeof(RepositoryMock).AssemblyQualifiedName;
+			DataStoreType mockDataStoreType = new DataStoreType("mock datastore", "mock", typeName);
+			List<DataStoreType> datastoreTypes = new List<DataStoreType>() { mockDataStoreType };
+			DataStoreType.AllTypes = datastoreTypes;
 
-			Assert.That(_configReaderWriter.Saved, Is.True);
+			existingModel.DataStoreTypeName = "mock datastore";
 		}
 	}
 }

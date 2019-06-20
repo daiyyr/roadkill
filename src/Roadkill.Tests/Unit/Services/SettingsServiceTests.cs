@@ -1,11 +1,17 @@
-﻿using NUnit.Framework;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using NUnit.Framework;
 using Roadkill.Core;
 using Roadkill.Core.Configuration;
-using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Database;
 using Roadkill.Core.Services;
-using Roadkill.Tests.Unit.StubsAndMocks;
+using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.DI;
+using Roadkill.Core.Security;
 
-namespace Roadkill.Tests.Unit.Services
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -13,22 +19,58 @@ namespace Roadkill.Tests.Unit.Services
 	{
 		private MocksAndStubsContainer _container;
 
-		private SettingsRepositoryMock _settingsRepository;
+		private RepositoryMock _repository;
+		private ApplicationSettings _applicationSettings;
 		private SettingsService _settingsService;
-		private RepositoryFactoryMock _repositoryFactory;
 
 		[SetUp]
 		public void Setup()
 		{
 			_container = new MocksAndStubsContainer();
 
-			_repositoryFactory = _container.RepositoryFactory;
-			_settingsRepository = _container.SettingsRepository;
+			_applicationSettings = _container.ApplicationSettings;
+			_repository = _container.Repository;
 			_settingsService = _container.SettingsService;
 		}
 
 		[Test]
-		public void getsitesettings_should_return_correct_settings()
+		public void ClearUserTable_Should_Remove_All_Users()
+		{
+			// Arrange
+			_repository.Users.Add(new User() { IsAdmin = true });
+			_repository.Users.Add(new User() { IsAdmin = true });
+			_repository.Users.Add(new User() { IsEditor = true });
+			_repository.Users.Add(new User() { IsEditor = true });
+
+			// Act
+			_settingsService.ClearUserTable();
+
+			// Assert
+			Assert.That(_repository.FindAllAdmins().Count(), Is.EqualTo(0)); // need an allusers method
+			Assert.That(_repository.FindAllEditors().Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void CreateTables_Calls_Repository_Install()
+		{
+			// Arrange
+			SettingsViewModel model = new SettingsViewModel();
+			model.DataStoreTypeName = "SQLite";
+			model.ConnectionString = "Data Source=somefile.sqlite;";
+			model.UseObjectCache = true;
+
+			// Act
+			_settingsService.CreateTables(model);
+
+
+			// Assert
+			Assert.That(_repository.InstalledConnectionString, Is.EqualTo(model.ConnectionString));
+			Assert.That(_repository.InstalledDataStoreType, Is.EqualTo(DataStoreType.Sqlite));
+			Assert.That(_repository.InstalledEnableCache, Is.EqualTo(model.UseObjectCache));
+		}
+
+		[Test]
+		public void GetSiteSettings_Should_Return_Correct_Settings()
 		{
 			// Arrange
 			SiteSettings expectedSettings = new SiteSettings();
@@ -43,7 +85,7 @@ namespace Roadkill.Tests.Unit.Services
 			expectedSettings.OverwriteExistingFiles = true;
 			expectedSettings.HeadContent = "some head content";
 			expectedSettings.MenuMarkup = "some menu markup";
-			_settingsRepository.SiteSettings = expectedSettings;
+			_repository.SiteSettings = expectedSettings;
 
 			// Act
 			SiteSettings actualSettings = _settingsService.GetSiteSettings();
@@ -63,7 +105,7 @@ namespace Roadkill.Tests.Unit.Services
 		}
 
 		[Test]
-		public void savesitesettings_should_save_all_values()
+		public void SaveSiteSettings_Should_Save_All_Values()
 		{
 			// Arrange
 			SettingsViewModel expectedSettings = new SettingsViewModel();
@@ -98,7 +140,7 @@ namespace Roadkill.Tests.Unit.Services
 		}
 
 		[Test]
-		public void savesitesettings_should_persist_all_values()
+		public void SaveSiteSettings_Should_Persist_All_Values()
 		{
 			// Arrange
 			ApplicationSettings appSettings = new ApplicationSettings();
@@ -127,7 +169,11 @@ namespace Roadkill.Tests.Unit.Services
 				Theme = "theme",
 			};
 
-			SettingsService settingsService = new SettingsService(_repositoryFactory, appSettings);
+			RepositoryMock repository = new RepositoryMock();
+
+			DependencyManager iocSetup = new DependencyManager(appSettings, repository, new UserContext(null)); // context isn't used
+			iocSetup.Configure();
+			SettingsService settingsService = new SettingsService(appSettings, repository);
 
 			// Act
 			settingsService.SaveSiteSettings(validConfigSettings);
@@ -146,16 +192,6 @@ namespace Roadkill.Tests.Unit.Services
 			Assert.That(actualSettings.SiteName, Is.EqualTo("sitename"), "SiteName");
 			Assert.That(actualSettings.SiteUrl, Is.EqualTo("siteurl"), "SiteUrl");
 			Assert.That(actualSettings.Theme, Is.EqualTo("theme"), "Theme");
-		}
-
-		[Test]
-		public void savesitesettings_should_rethrow_database_exception_with_context_of_error()
-		{
-			// Arrange
-			_settingsRepository.ThrowSaveSiteSettingsException = true;
-
-			// Act + Assert
-			Assert.Throws<DatabaseException>(() => _settingsService.SaveSiteSettings(new SettingsViewModel()));
 		}
 	}
 }

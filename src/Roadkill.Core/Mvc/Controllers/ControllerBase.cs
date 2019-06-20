@@ -15,7 +15,7 @@ namespace Roadkill.Core.Mvc.Controllers
 	/// A base controller for all Roadkill controller classes which require services 
 	/// (via an IServiceContainer) or authentication.
 	/// </summary>
-	public class ControllerBase : Controller, IRoadkillController
+	public class ControllerBase : Controller
 	{
 		public ApplicationSettings ApplicationSettings { get; private set; }
 		public UserServiceBase UserService { get; private set; }
@@ -54,7 +54,7 @@ namespace Roadkill.Core.Mvc.Controllers
 		/// <param name="filterContext">Information about the current request and action.</param>
 		protected override void OnActionExecuting(ActionExecutingContext filterContext)
 		{
-			// Redirect if Roadkill isn't installed
+			// Redirect if Roadkill isn't installed or an upgrade is needed.
 			if (!ApplicationSettings.Installed)
 			{
 				if (!(filterContext.Controller is InstallController))
@@ -62,10 +62,30 @@ namespace Roadkill.Core.Mvc.Controllers
 
 				return;
 			}
+			else if (ApplicationSettings.UpgradeRequired)
+			{
+				if (!(filterContext.Controller is UpgradeController))
+					filterContext.Result = new RedirectResult(this.Url.Action("Index", "Upgrade"));
+
+				return;
+			}
 
 			Context.CurrentUser = UserService.GetLoggedInUserName(HttpContext);
 			ViewBag.Context = Context;
 			ViewBag.Config = ApplicationSettings;
+
+			// This is a fix for versions before 1.5 storing the username instead of a guid in the login cookie
+			if (!ApplicationSettings.UseWindowsAuthentication)
+			{
+				if (!string.IsNullOrEmpty(Context.CurrentUser))
+				{
+					Guid userId;
+					if (!Guid.TryParse(Context.CurrentUser, out userId))
+					{
+						UserService.Logout();
+					}
+				}
+			}
 		}
 	}
 }

@@ -1,15 +1,21 @@
-﻿using System;
+﻿using System.Linq;
 using System.Web.Mvc;
+using Moq;
 using NUnit.Framework;
 using Roadkill.Core;
+using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
-using Roadkill.Core.Database;
 using Roadkill.Core.Mvc.Controllers;
-using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Converters;
+using Roadkill.Core.Database;
+using Roadkill.Core.Localization;
 using Roadkill.Core.Services;
+using Roadkill.Core.Security;
+using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Tests.Unit.StubsAndMocks;
+using System;
 
-namespace Roadkill.Tests.Unit.Mvc.Controllers
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -19,13 +25,12 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 
 		private ApplicationSettings _applicationSettings;
 		private IUserContext _context;
-		private SettingsRepositoryMock _settingsRepository;
+		private RepositoryMock _repository;
 		private UserServiceMock _userService;
 		private PageService _pageService;
 		private SettingsService _settingsService;
 
 		private HelpController _helpController;
-		private PageRepositoryMock _pageRepository;
 
 		[SetUp]
 		public void Setup()
@@ -34,10 +39,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 
 			_applicationSettings = _container.ApplicationSettings;
 			_context = _container.UserContext;
-
-			_settingsRepository = _container.SettingsRepository;
-			_pageRepository = _container.PageRepository;
-
+			_repository = _container.Repository;
 			_settingsService = _container.SettingsService;
 			_userService = _container.UserService;
 			_pageService = _container.PageService;
@@ -46,10 +48,10 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void index_should_return_viewresult()
+		public void Index_Should_Return_ViewResult()
 		{
 			// Arrange
-			_settingsRepository.SiteSettings.MarkupType = "Mediawiki";
+			_repository.SiteSettings.MarkupType = "Mediawiki";
 
 			// Act
 			ViewResult result = _helpController.Index() as ViewResult;
@@ -59,7 +61,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void about_should_return_viewresult_and_page_with_about_tag_as_model()
+		public void About_Should_Return_ViewResult_And_Page_With_About_Tag_As_Model()
 		{
 			// Arrange
 			Page aboutPage = new Page()
@@ -69,7 +71,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 				Tags = "about"
 			};
 
-			_pageRepository.AddNewPage(aboutPage, "text", "nobody", DateTime.Now);
+			_repository.AddNewPage(aboutPage, "text", "nobody", DateTime.Now);
 
 			// Act
 			ViewResult result = _helpController.About() as ViewResult;
@@ -84,7 +86,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void about_should_return_redirectresult_to_new_page_when_no_page_has_about_tag()
+		public void About_Should_Return_RedirectResult_To_New_Page_When_No_Page_Has_About_Tag()
 		{
 			// Arrange
 
@@ -101,7 +103,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void creolereference_should_return_view()
+		public void CreoleReference_Should_Return_View()
 		{
 			// Arrange
 
@@ -114,7 +116,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void mediawikireference_should_return_view()
+		public void MediaWikiReference_Should_Return_View()
 		{
 			// Arrange
 
@@ -127,7 +129,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers
 		}
 
 		[Test]
-		public void markdownreference_should_return_view()
+		public void MarkdownReference_Should_Return_View()
 		{
 			// Arrange
 

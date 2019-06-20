@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
 using System.IO;
-using Mono.Security.X509;
-using Roadkill.Core.Logging;
+using System.Web;
+using StructureMap;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
 using Roadkill.Core.Services;
@@ -18,27 +20,14 @@ namespace Roadkill.Core.Import
 	{
 		private string _connectionString;
 		private string _attachmentsFolder;
-
+		protected IRepository Repository;
 		protected ApplicationSettings ApplicationSettings;
-		protected IPageRepository PageRepository;
-		protected IUserRepository UserRepository;
 
-		public ScrewTurnImporter(ApplicationSettings settings, IPageRepository pageRepository, IUserRepository userRepository)
+		public ScrewTurnImporter(ApplicationSettings settings, IRepository repository)
 		{
-			if (settings == null)
-				throw new ArgumentNullException(nameof(settings));
-
-			if (pageRepository == null)
-				throw new ArgumentNullException(nameof(pageRepository));
-
-			if (userRepository == null)
-				throw new ArgumentNullException(nameof(userRepository));
-
-			UserRepository = userRepository;
-			PageRepository = pageRepository;
+			Repository = repository;
 			ApplicationSettings = settings;
-
-			_attachmentsFolder = settings.AttachmentsDirectoryPath;
+			_attachmentsFolder = ApplicationSettings.AttachmentsDirectoryPath;
 		}
 
 		/// <summary>
@@ -49,13 +38,9 @@ namespace Roadkill.Core.Import
 		{
 			_connectionString = connectionString;
 
-			Log.Information("Importing users");
 			ImportUsers();
-			Log.Information("Importing pages");
 			ImportPages();
-			Log.Information("Importing files");
 			ImportFiles();
-			Log.Information("Import complete");
 		}
 
 		/// <summary>
@@ -90,7 +75,7 @@ namespace Roadkill.Core.Import
 									user.IsActivated = false;
 									user.SetPassword("password");
 
-									UserRepository.SaveOrUpdateUser(user);
+									Repository.SaveOrUpdateUser(user);
 								}
 							}
 						}
@@ -99,7 +84,7 @@ namespace Roadkill.Core.Import
 			}
 			catch (SqlException ex)
 			{
-				throw new DatabaseException(ex, "Unable to import the users from Screwturn - have you configured it to use the SQL Server users provider? \n{0}", ex.Message);
+				throw new DatabaseException(ex, "Unable to import the pages from Screwturn - have you configured it to use the SQL Server users provider? \n{0}", ex.Message);
 			}
 		}
 		
@@ -108,7 +93,6 @@ namespace Roadkill.Core.Import
 		/// </summary>
 		private void ImportPages()
 		{
-			Dictionary<string, string> nameTitleMapping = new Dictionary<string, string>();
 			try
 			{
 				using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -117,36 +101,16 @@ namespace Roadkill.Core.Import
 					{
 						connection.Open();
 						command.CommandText = @"SELECT 
-												p.Name,
-												pc.Title
-											FROM [Page] p
-												INNER JOIN [PageContent] pc ON pc.[Page] = p.Name
-											WHERE 
-												pc.Revision = (SELECT TOP 1 Revision FROM PageContent WHERE [Page]=p.Name ORDER BY LastModified)
-											ORDER BY p.CreationDateTime";
-
-						using (SqlDataReader reader = command.ExecuteReader())
-						{
-							while (reader.Read())
-							{
-								nameTitleMapping.Add(reader["Name"].ToString(), reader["Title"].ToString());
-							}
-						}
-					}
-
-					using (SqlCommand command = connection.CreateCommand())
-					{
-						command.CommandText = @"SELECT 
 												p.CreationDateTime,
 												p.Name,
 												pc.[User] as [User],
 												pc.Title,
+												pc.Revision,
 												pc.LastModified 
 											FROM [Page] p
 												INNER JOIN [PageContent] pc ON pc.[Page] = p.Name
 											WHERE 
-												pc.Revision = (SELECT TOP 1 Revision FROM PageContent WHERE [Page]=p.Name ORDER BY LastModified)
-											ORDER BY p.CreationDateTime";
+												pc.Revision = (SELECT MAX(Revision) FROM PageContent WHERE [Page]=p.Name)";
 
 						using (SqlDataReader reader = command.ExecuteReader())
 						{
@@ -157,17 +121,17 @@ namespace Roadkill.Core.Import
 								Page page = new Page();
 								page.Title = reader["Title"].ToString();
 								page.CreatedBy = reader["User"].ToString();
-								page.CreatedOn = ConvertToUtcDateTime(reader["CreationDateTime"]);
+								page.CreatedOn = (DateTime)reader["CreationDateTime"];
 								page.ModifiedBy = reader["User"].ToString();
-								page.ModifiedOn = ConvertToUtcDateTime(reader["LastModified"]);
+								page.ModifiedOn = (DateTime)reader["LastModified"];
 
 								string categories = GetCategories(pageName);
 								if (!string.IsNullOrWhiteSpace(categories))
-									categories += ",";
+									categories += ";";
 								page.Tags = categories;
 
-								page = PageRepository.SaveOrUpdatePage(page);
-								AddContent(pageName, page, nameTitleMapping);
+								page = Repository.SaveOrUpdatePage(page);
+								AddContent(pageName, page);
 							}
 						}
 					}
@@ -205,7 +169,7 @@ namespace Roadkill.Core.Import
 			}
 			catch (SqlException ex)
 			{
-				throw new DatabaseException(ex, "Unable to import the files from Screwturn - have you configured it to use the SQL Server files provider? \n{0}", ex.Message);
+				throw new DatabaseException(ex, "Unable to import the pages from Screwturn - have you configured it to use the SQL Server files provider? \n{0}", ex.Message);
 			}
 		}
 
@@ -236,7 +200,7 @@ namespace Roadkill.Core.Import
 		}
 
 		/// <summary>
-		/// Returns all categories in the Screwturn database as a "," delimited string.
+		/// Returns all categories in the Screwturn database as a ";" delimited string.
 		/// </summary>
 		private string GetCategories(string pageName)
 		{
@@ -258,11 +222,11 @@ namespace Roadkill.Core.Import
 					{
 						while (reader.Read())
 						{
-							categories.Add(reader.GetString(0).Replace(",","-").Replace(" ","-"));
+							categories.Add(reader.GetString(0).Replace(";","-").Replace(" ","-"));
 						}
 					}
 
-					return string.Join(",", categories);
+					return string.Join(";", categories);
 				}
 			}
 		}
@@ -270,18 +234,15 @@ namespace Roadkill.Core.Import
 		/// <summary>
 		/// Extracts and saves all textual content for a page.
 		/// </summary>
-		/// <param name="pageName"></param>
 		/// <param name="page">The page the content belongs to.</param>
-		/// <param name="nameTitleMapping">Mapping between name and title</param>
-		private void AddContent(string pageName, Page page, Dictionary<string, string> nameTitleMapping)
+		private void AddContent(string pageName, Page page)
 		{
 			using (SqlConnection connection = new SqlConnection(_connectionString))
 			{
 				using (SqlCommand command = connection.CreateCommand())
 				{
 					connection.Open();
-					command.CommandText = @"SELECT *, (SELECT MAX(Revision) FROM PageContent PC WHERE PC.Page = PageContent.Page) AS MaxRevision
-											FROM PageContent WHERE [Page]=@Page ORDER BY LastModified";
+					command.CommandText = "SELECT * FROM PageContent WHERE [Page]=@Page";
 					
 					SqlParameter parameter = new SqlParameter();
 					parameter.ParameterName = "@Page";
@@ -289,6 +250,7 @@ namespace Roadkill.Core.Import
 					parameter.Value = pageName;
 					command.Parameters.Add(parameter);
 
+					List<PageContent> categories = new List<PageContent>();
 					bool hasContent = false;
 					using (SqlDataReader reader = command.ExecuteReader())
 					{
@@ -296,15 +258,12 @@ namespace Roadkill.Core.Import
 						{
 							PageContent content = new PageContent();
 							string editedBy = reader["User"].ToString();
-							DateTime editedOn = ConvertToUtcDateTime(reader["LastModified"]);
+							DateTime EditedOn = (DateTime)reader["LastModified"];
 							string text = reader["Content"].ToString();
-							text = CleanContent(text, nameTitleMapping);
+							text = CleanContent(text);
 							int versionNumber = (int.Parse(reader["Revision"].ToString())) + 1;
 
-							if (versionNumber == 0)
-								versionNumber = (int.Parse(reader["MaxRevision"].ToString())) + 2;					
-
-							PageRepository.AddNewPageContentVersion(page, text, editedBy, editedOn, versionNumber);
+							Repository.AddNewPageContentVersion(page, text, editedBy, EditedOn, versionNumber);
 							hasContent = true;
 						}
 					}
@@ -312,33 +271,36 @@ namespace Roadkill.Core.Import
 					// For broken content, make sure the page has something
 					if (!hasContent)
 					{
-						PageRepository.AddNewPage(page, "", "unknown", DateTime.UtcNow);
+						Repository.AddNewPage(page, "", "unknown", DateTime.UtcNow);
 					}
 				}
 			}
 		}
 
-		private static DateTime ConvertToUtcDateTime(object localDateTimeField)
-		{
-			DateTime localDateTime = DateTime.SpecifyKind((DateTime)localDateTimeField, DateTimeKind.Local);
-			return localDateTime.ToUniversalTime();
-		}
-
 		/// <summary>
 		/// Attempts to clean the Screwturn wiki syntax so it loosely matches media wiki format.
 		/// </summary>
-		private string CleanContent(string text, Dictionary<string, string> nameTitleMapping)
+		private string CleanContent(string text)
 		{
 			if (string.IsNullOrEmpty(text))
 				return text;
 
-		    text = text.ReplaceHyperlinks(nameTitleMapping)
-						.ReplaceBr()
-						.ReplaceImageLinks()
-                        .ReplaceBlockCode()
-                        .ReplaceInlineCode()
-                        .ReplaceBoxMarkup();
-			
+			// Screwturn uses "[" for links instead of "[[", so do a crude replace.
+			// Files aren't done using File:/ but instead {UP}
+			// This needs more coverage for @@ blocks, variables, toc.
+			text = text.Replace("[", "[[")
+						.Replace("]", "]]")
+						.Replace("{BR}", "\n")
+						.Replace("imageleft||","")
+						.Replace("{UP}/","File:/");
+
+			// Handle nowiki blocks being a little strange
+			Regex regex = new Regex("@@(.*?)@@",RegexOptions.Singleline);
+			if (regex.IsMatch(text))
+			{
+				text = regex.Replace(text,"<nowiki>$1</nowiki>");
+			}
+
 			return text;
 		}
 

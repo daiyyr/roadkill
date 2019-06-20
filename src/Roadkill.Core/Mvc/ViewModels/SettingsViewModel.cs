@@ -1,13 +1,15 @@
-﻿using Roadkill.Core.Configuration;
-using Roadkill.Core.Database;
-using Roadkill.Core.Localization;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.IO;
 using System.Linq;
+using System.Text;
+using System.ComponentModel.DataAnnotations;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
+using Roadkill.Core.Localization;
+using Roadkill.Core.Configuration;
 using System.Web;
 using System.Web.Mvc;
+using Roadkill.Core.Database;
 
 namespace Roadkill.Core.Mvc.ViewModels
 {
@@ -18,7 +20,6 @@ namespace Roadkill.Core.Mvc.ViewModels
 	public class SettingsViewModel
 	{
 		private static string _themesRoot;
-		private List<SelectListItem> _supportedDatabasesSelectList;
 
 		[Required(ErrorMessageResourceType = typeof(SiteStrings), ErrorMessageResourceName = "SiteSettings_Validation_MarkupTypeEmpty")]
 		public string MarkupType { get; set; }
@@ -32,10 +33,6 @@ namespace Roadkill.Core.Mvc.ViewModels
 		[Required(ErrorMessageResourceType = typeof(SiteStrings), ErrorMessageResourceName = "SiteSettings_Validation_AttachmentsEmpty")]
 		[RegularExpression(@"^[^/Files].*", ErrorMessageResourceType = typeof(SiteStrings), ErrorMessageResourceName = "SiteSettings_Validation_AttachmentsReservedName")]
 		public string AttachmentsFolder { get; set; }
-
-		public string AzureConnectionString { get; set; }
-
-		public string AzureContainer { get; set; }
 
 		[Required(ErrorMessageResourceType = typeof(SiteStrings), ErrorMessageResourceName = "SiteSettings_Validation_ConnectionEmpty")]
 		public string ConnectionString { get; set; }
@@ -51,7 +48,7 @@ namespace Roadkill.Core.Mvc.ViewModels
 		public string AttachmentsDirectoryPath { get; set; }
 		public bool UseObjectCache { get; set; }
 		public bool UseBrowserCache { get; set; }
-		public string DatabaseName { get; set; }
+		public string DataStoreTypeName { get; set; }
 		public string EditorRoleName { get; set; }
 		public bool IsRecaptchaEnabled { get; set; }
 		public string LdapConnectionString { get; set; }
@@ -59,7 +56,6 @@ namespace Roadkill.Core.Mvc.ViewModels
 		public string LdapPassword { get; set; }
 		public string RecaptchaPrivateKey { get; set; }
 		public string RecaptchaPublicKey { get; set; }
-		public bool UseAzureFileStorage { get; set; }
 		public bool UseWindowsAuth { get; set; }
 		
 		// v2.0
@@ -75,7 +71,19 @@ namespace Roadkill.Core.Mvc.ViewModels
 		/// </summary>
 		public bool UpdateSuccessful { get; set; }
 
+		public IEnumerable<string> DatabaseTypesAvailable
+		{
+			get
+			{
+#if MONO
+				return DataStoreType.AllMonoTypes.Select(x => x.Name);
+#else
+				return DataStoreType.AllTypes.Select(x => x.Name);
+#endif
+			}
+		}
 
+		// TODO: tests
 		/// <summary>
 		/// Gets an IEnumerable{SelectListItem} from a the SettingsViewModel.DatabaseTypesAvailable, as a default
 		/// SelectList doesn't add option value attributes.
@@ -84,7 +92,21 @@ namespace Roadkill.Core.Mvc.ViewModels
 		{
 			get
 			{
-				return _supportedDatabasesSelectList;
+				List<SelectListItem> items = new List<SelectListItem>();
+
+				foreach (string name in DatabaseTypesAvailable)
+				{
+					SelectListItem item = new SelectListItem();
+					item.Text = name;
+					item.Value = name;
+
+					if (name == DataStoreTypeName)
+						item.Selected = true;
+
+					items.Add(item);
+				}
+
+				return items;
 			}
 		}
 
@@ -171,7 +193,7 @@ namespace Roadkill.Core.Mvc.ViewModels
 			AttachmentsFolder = applicationSettings.AttachmentsFolder;
 			AttachmentsDirectoryPath = applicationSettings.AttachmentsDirectoryPath;
 			ConnectionString = applicationSettings.ConnectionString;
-			DatabaseName = applicationSettings.DatabaseName;
+			DataStoreTypeName = applicationSettings.DataStoreType.Name;
 			EditorRoleName = applicationSettings.EditorRoleName;
 			IsPublicSite = applicationSettings.IsPublicSite;
 			IgnoreSearchIndexErrors = applicationSettings.IgnoreSearchIndexErrors;
@@ -181,23 +203,6 @@ namespace Roadkill.Core.Mvc.ViewModels
 			UseWindowsAuth = applicationSettings.UseWindowsAuthentication;
 			UseObjectCache = applicationSettings.UseObjectCache;
 			UseBrowserCache = applicationSettings.UseBrowserCache;
-		}
-
-		public void SetSupportedDatabases(IEnumerable<RepositoryInfo> repositoryInfos)
-		{
-			_supportedDatabasesSelectList = new List<SelectListItem>();
-
-			foreach (RepositoryInfo info in repositoryInfos)
-			{
-				SelectListItem item = new SelectListItem();
-				item.Value = info.Id;
-				item.Text = info.Description;
-
-				if (item.Value == DatabaseName)
-					item.Selected = true;
-
-				_supportedDatabasesSelectList.Add(item);
-			}
 		}
 	}
 }

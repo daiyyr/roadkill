@@ -18,5 +18,11 @@ namespace Roadkill.Core.Database.Schema
 			string sql = LoadFromResource("Roadkill.Core.Database.Schema.SqlServer.Drop.sql");
 			return new string[] { sql };
 		}
+
+		protected override IEnumerable<string> GetUpgradeStatements()
+		{
+			string sql = LoadFromResource("Roadkill.Core.Database.Schema.SqlServer.Upgrade.sql");
+			return new string[] { sql };
+		}
 	}
 }

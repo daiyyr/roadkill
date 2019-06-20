@@ -1,13 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using Moq;
 using NUnit.Framework;
 using Roadkill.Core;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
 using Roadkill.Core.Mvc.ViewModels;
-using Roadkill.Tests.Unit.StubsAndMocks;
+using Roadkill.Core.Security;
 
-namespace Roadkill.Tests.Unit.Mvc.ViewModels
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -16,7 +20,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		private MocksAndStubsContainer _container;
 
 		private ApplicationSettings _applicationSettings;
-		private PageRepositoryMock _pageRepository;
+		private RepositoryMock _repository;
 		private UserServiceMock _userService;
 		private IUserContext _context;
 
@@ -29,7 +33,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 
 			_applicationSettings = _container.ApplicationSettings;
 			_context = _container.UserContext;
-			_pageRepository = _container.PageRepository;
+			_repository = _container.Repository;
 			_userService = _container.UserService;
 
 			_userService.Users.Add(new User() { Email = "emailexists@test.com" });
@@ -37,7 +41,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void verifynewemail_for_new_user_with_empty_email_should_fail()
+		public void VerifyNewEmail_For_New_User_With_Empty_Email_Should_Fail()
 		{
 			// Arrange
 			_userViewModel.Id = null;
@@ -52,7 +56,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void verifynewemail_for_new_user_with_valid_email_should_succeed()
+		public void VerifyNewEmail_For_New_User_With_Valid_Email_Should_Succeed()
 		{
 			// Arrange
 			_userViewModel.Id = null;
@@ -66,7 +70,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void verifynewemail_for_existing_user_with_empty_email_should_fail()
+		public void VerifyNewEmail_For_Existing_User_With_Empty_Email_Should_Fail()
 		{
 			// Arrange
 			_userViewModel.Id = Guid.NewGuid();
@@ -81,7 +85,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void verifynewemail_for_existing_user_with_valid_email_should_succeed()
+		public void VerifyNewEmail_For_Existing_User_With_Valid_Email_Should_Succeed()
 		{
 			// Arrange
 			_userViewModel.Id = Guid.NewGuid();
@@ -96,7 +100,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void verifynewemailisnotinuse_for_new_user_with_email_that_exists_should_fail()
+		public void VerifyNewEmailIsNotInUse_For_New_User_With_Email_That_Exists_Should_Fail()
 		{
 			// Arrange
 			_userViewModel.Id = null;
@@ -111,7 +115,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void verifynewemailisnotinuse_for_new_user_with_unique_email_should_succeed()
+		public void VerifyNewEmailIsNotInUse_For_New_User_With_Unique_Email_Should_Succeed()
 		{
 			// Arrange
 			_userViewModel.Id = null;
@@ -126,7 +130,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void verifynewemailisnotinuse_when_new_user_created_in_admin_tools_with_unique_email_should_succeed()
+		public void VerifyNewEmailIsNotInUse_When_New_User_Created_In_Admin_Tools_With_Unique_Email_Should_Succeed()
 		{
 			// Arrange
 			_userViewModel.NewEmail = "test@test.com";
@@ -140,7 +144,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void verifynewemailisnotinuse_for_existing_user_with_email_that_exists_should_fail()
+		public void VerifyNewEmailIsNotInUse_For_Existing_User_With_Email_That_Exists_Should_Fail()
 		{
 			// Arrange
 			_userViewModel.Id = Guid.NewGuid();
@@ -155,7 +159,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void verifynewemailisnotinuse_for_existing_user_with_unique_email_should_succeed()
+		public void VerifyNewEmailIsNotInUse_For_Existing_User_With_Unique_Email_Should_Succeed()
 		{
 			// Arrange
 			_userViewModel.Id = Guid.NewGuid();
@@ -170,7 +174,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void verifynewemailisnotinuse_for_existing_user_with_unchanged_email_should_succeed()
+		public void VerifyNewEmailIsNotInUse_For_Existing_User_With_Unchanged_Email_Should_Succeed()
 		{
 			// Arrange
 			_userViewModel.Id = Guid.NewGuid();

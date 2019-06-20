@@ -1,10 +1,16 @@
-﻿using Roadkill.Core;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Roadkill.Core;
 using Roadkill.Core.Configuration;
+using Roadkill.Core.Database;
 using Roadkill.Core.Mvc.ViewModels;
 
 namespace Roadkill.Tests.Unit.StubsAndMocks
 {
-	public class ConfigReaderWriterStub : ConfigReaderWriter
+	internal class ConfigReaderWriterStub : ConfigReaderWriter
 	{
 		public ApplicationSettings ApplicationSettings { get; set; }
 		public string UILanguageCode { get; set; }
@@ -19,6 +25,10 @@ namespace Roadkill.Tests.Unit.StubsAndMocks
 			TestWebConfigResult = "OK";
 		}
 
+		public override void UpdateCurrentVersion(string currentVersion)
+		{
+		}
+
 		public override void UpdateLanguage(string uiLanguageCode)
 		{
 			UILanguageCode = uiLanguageCode;
@@ -30,7 +40,7 @@ namespace Roadkill.Tests.Unit.StubsAndMocks
 
 			// The bare minimum needed to test the installer
 			ApplicationSettings.ConnectionString = settings.ConnectionString;
-			ApplicationSettings.DatabaseName = settings.DatabaseName;
+			ApplicationSettings.DataStoreType = DataStoreType.ByName(settings.DataStoreTypeName);
 			ApplicationSettings.UseBrowserCache = settings.UseBrowserCache;
 			ApplicationSettings.UseObjectCache = settings.UseObjectCache;
 		}

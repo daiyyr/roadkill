@@ -1,7 +1,11 @@
-﻿using Roadkill.Core;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Roadkill.Core;
 using Roadkill.Core.Mvc.ViewModels;
 
-namespace Roadkill.Tests.Unit.StubsAndMocks
+namespace Roadkill.Tests.Unit
 {
 	internal class UserContextStub : IUserContext
 	{

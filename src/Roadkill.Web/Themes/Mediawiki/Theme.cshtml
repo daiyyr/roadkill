@@ -1,12 +1,11 @@
 @inherits RoadkillLayoutPage
 <!DOCTYPE html>
 <html>
-<head>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>@ViewBag.Title</title>
-	@Html.Partial("HeadContent")
-	@RenderSection("PluginHead", false)
-</head>
+	<head>
+		<title>@ViewBag.Title</title>
+		@Html.Partial("HeadContent")
+		@RenderSection("PluginHead", false)
+	</head>
 <body>
 
 @using (Html.BeginForm("Search", "Home", FormMethod.Get))
@@ -30,24 +29,26 @@
 		@Html.Action("NavMenu", "Home")
 	</div>
 
-	<div id="container">
-		@RenderSection("PluginPreContainer", false) @*Not outside the container*@
-		@RenderSection("PageToolbar", false)
-		@RenderSection("ViewHistoryLink", false)
-		<div id="content">
-			@RenderBody()
-		</div>
-	</div>
+    <div id="container">
+        @RenderSection("PluginPreContainer", false) @*Not outside the container*@
+        @RenderSection("PageToolbar", false)
+        <div style="display:none">
+            @RenderSection("ViewHistoryLink", false)
+        </div>
+        <div id="content">
+            @RenderBody()
+        </div>
+    </div>
 
-	@RenderSection("PluginPostContainer", false)
+    @RenderSection("PluginPostContainer", false)
 
-	<div id="footer">
-		@RenderSection("PageDetailsFooter", false)
-		<p>
-			@SiteStrings.Shared_PoweredBy (@ApplicationSettings.ProductVersion). This theme contains portions of its design from <a href="http://www.mediawiki.org" target="_blank">Mediawiki.org</a>.
-		</p>
-	</div>
+    <div id="footer">
+        @RenderSection("PageDetailsFooter", false)
+        <p style="display:none">
+            @SiteStrings.Shared_PoweredBy (@ApplicationSettings.ProductVersion). This theme contains portions of its design from <a href="http://www.mediawiki.org" target="_blank">Mediawiki.org</a>.
+        </p>
+    </div>
 
-	@RenderSection("PluginFooter", false)
+    @RenderSection("PluginFooter", false)
 </body>
 </html>

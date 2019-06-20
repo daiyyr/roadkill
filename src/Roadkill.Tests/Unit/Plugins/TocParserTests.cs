@@ -1,9 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using NUnit.Framework;
-using Roadkill.Plugins.Text.BuiltIn.ToC;
+using Roadkill.Core;
+using Roadkill.Core.Converters;
+using Roadkill.Core.Text;
+using Roadkill.Core.Plugins.Text.BuiltIn.ToC;
 
-namespace Roadkill.Tests.Unit.Plugins
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -48,7 +53,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void should_have_correct_tree_structure_from_basic_html()
+		public void Should_Have_Correct_Tree_Structure_From_Basic_Html()
 		{
 			// Arrange
 			TocParser tocParser = new TocParser();
@@ -86,7 +91,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void should_have_correct_titles()
+		public void Should_Have_Correct_Titles()
 		{
 			// Arrange
 			TocParser tocParser = new TocParser();
@@ -113,7 +118,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void should_have_named_anchors_inserted_by_headers_in_html()
+		public void Should_Have_Named_Anchors_Inserted_By_Headers_In_Html()
 		{
 			// Arrange
 			TocParser tocParser = new TocParser();
@@ -127,7 +132,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void should_have_correct_section_numbering_for_large_lists()
+		public void Should_Have_Correct_Section_Numbering_For_Large_Lists()
 		{
 			// Arrnage
 			TocParser tocParser = new TocParser();
@@ -148,11 +153,11 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void should_ignore_multiple_curlies()
+		public void Should_Ignore_Multiple_Curlies()
 		{
 			// Arrange
 			TocParser tocParser = new TocParser();
-			string html = "Give me a {{TOC}} and a {{{{TOC}}}} - the should not render a TOC, nor contain HTML";
+			string html = "Give me a {{TOC}} and a {{{{TOC}}}} - the should not render a TOC";
 			string expected = html;
 
 			// Act
@@ -163,7 +168,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void should_have_correct_html_nesting_and_warning_titles_when_missing_levels()
+		public void Should_Have_Correct_Html_Nesting_And_Warning_Titles_When_Missing_Levels()
 		{
 			// From issue #177
 			// Arrange

@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Caching;
+using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
@@ -10,7 +14,6 @@ using Roadkill.Core.Services;
 using Roadkill.Core.Mvc.Attributes;
 using Roadkill.Core.Mvc.Controllers;
 using Roadkill.Tests.Unit.StubsAndMocks;
-using Roadkill.Tests.Unit.StubsAndMocks.Mvc;
 
 namespace Roadkill.Tests.Unit.Mvc.Attributes
 {
@@ -19,35 +22,24 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 	public class BrowserCacheAttributeTests
 	{
 		private PluginFactoryMock _pluginFactory;
-		private SettingsRepositoryMock _settingsRepository;
-		private PageRepositoryMock _pageRepository;
-
+		private RepositoryMock _repositoryMock;
 		private readonly DateTime _pageCreatedDate = DateTime.Today;
 		private readonly DateTime _pageModifiedDate = DateTime.Today;
 		private readonly DateTime _pluginLastSavedDate = DateTime.Today;
-		private MocksAndStubsContainer _container;
-		private SettingsService _settingsService;
 
 		[SetUp]
 		public void Setup()
 		{
-			_container = new MocksAndStubsContainer();
-
-			_container.SettingsRepository.SiteSettings.PluginLastSaveDate = _pluginLastSavedDate;
-
-			_pluginFactory = _container.PluginFactory;
-			_settingsRepository = _container.SettingsRepository;
-			_pageRepository = _container.PageRepository;
-
-			_settingsService = _container.SettingsService;
+			_pluginFactory = new PluginFactoryMock();
+			_repositoryMock = new RepositoryMock();
 		}
 
 		[Test]
-		public void should_not_set_viewresult_if_not_installed()
+		public void Should_Not_Set_ViewResult_If_Not_Installed()
 		{
 			// Arrange
 			BrowserCacheAttribute attribute = new BrowserCacheAttribute();
-			attribute.SettingsService = _settingsService;
+			attribute.SettingsService = GetSettingsService();
 
 			WikiController controller = CreateWikiController(attribute);
 			ResultExecutedContext filterContext = CreateContext(controller);
@@ -62,11 +54,11 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 		}
 
 		[Test]
-		public void should_not_set_viewresult_if_usebrowsercache_is_disabled()
+		public void Should_Not_Set_ViewResult_If_UseBrowserCache_Is_Disabled()
 		{
 			// Arrange
 			BrowserCacheAttribute attribute = new BrowserCacheAttribute();
-			attribute.SettingsService = _settingsService;
+			attribute.SettingsService = GetSettingsService();
 
 			WikiController controller = CreateWikiController(attribute);
 			ResultExecutedContext filterContext = CreateContext(controller);
@@ -81,11 +73,11 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 		}
 
 		[Test]
-		public void should_not_set_viewresult_if_user_is_logged_in()
+		public void Should_Not_Set_ViewResult_If_User_Is_Logged_In()
 		{
 			// Arrange
 			BrowserCacheAttribute attribute = new BrowserCacheAttribute();
-			attribute.SettingsService = _settingsService;
+			attribute.SettingsService = GetSettingsService();
 
 			WikiController controller = CreateWikiController(attribute);
 			ResultExecutedContext filterContext = CreateContext(controller);
@@ -100,11 +92,11 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 		}
 
 		[Test]
-		public void should_have_200_http_status_code_if_no_modified_since_header()
+		public void Should_Have_200_Http_Status_Code_If_No_Modified_Since_Header()
 		{
 			// Arrange
 			BrowserCacheAttribute attribute = new BrowserCacheAttribute();
-			attribute.SettingsService = _settingsService;
+			attribute.SettingsService = GetSettingsService();
 
 			WikiController controller = CreateWikiController(attribute);
 			ResultExecutedContext filterContext = CreateContext(controller);
@@ -118,16 +110,16 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 		}
 
 		[Test]
-		public void should_have_200_http_status_code_if_pluginssaved_after_header_last_modified_date()
+		public void Should_Have_200_Http_Status_Code_If_PluginsSaved_After_Header_Last_Modified_Date()
 		{
 			// Arrange
 			BrowserCacheAttribute attribute = new BrowserCacheAttribute();
-			attribute.SettingsService = _settingsService;
-			_settingsRepository.SiteSettings.PluginLastSaveDate = DateTime.UtcNow;
+			attribute.SettingsService = GetSettingsService();
+			_repositoryMock.SiteSettings.PluginLastSaveDate = DateTime.UtcNow;
 
 			WikiController controller = CreateWikiController(attribute);
 			ResultExecutedContext filterContext = CreateContext(controller);
-			filterContext.HttpContext.Request.Headers.Add("If-Modified-Since", DateTime.Today.ToUniversalTime().ToString("r"));
+			filterContext.HttpContext.Request.Headers.Add("If-Modified-Since", DateTime.Today.ToString("r"));
 
 			// Act
 			attribute.OnResultExecuted(filterContext);
@@ -138,16 +130,16 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 		}
 
 		[Test]
-		public void should_have_304_http_status_code_if_pluginssaved_is_equal_to_header_last_modified_date()
+		public void Should_Have_304_Http_Status_Code_If_PluginsSaved_Is_Equal_To_Header_Last_Modified_Date()
 		{
 			// Arrange
 			BrowserCacheAttribute attribute = new BrowserCacheAttribute();
-			attribute.SettingsService = _settingsService;
-			_settingsRepository.SiteSettings.PluginLastSaveDate = DateTime.Today.ToUniversalTime().AddHours(1);
+			attribute.SettingsService = GetSettingsService();
+			_repositoryMock.SiteSettings.PluginLastSaveDate = DateTime.Today.AddHours(1);
 
 			WikiController controller = CreateWikiController(attribute);
 			ResultExecutedContext filterContext = CreateContext(controller);
-			filterContext.HttpContext.Request.Headers.Add("If-Modified-Since", DateTime.Today.AddHours(1).ToUniversalTime().ToString("r"));
+			filterContext.HttpContext.Request.Headers.Add("If-Modified-Since", DateTime.Today.AddHours(1).ToString("r"));
 
 			// Act
 			attribute.OnResultExecuted(filterContext);
@@ -158,7 +150,7 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 		}
 
 		[Test]
-		public void should_have_304_http_status_code_if_response_has_modified_since_header_matching_page_modified_date()
+		public void Should_Have_304_Http_Status_Code_If_Response_Has_Modified_Since_Header_Matching_Page_Modified_Date()
 		{
 			// The file date and the browser date always match for a 304 status, the browser will never send back a more recent date,
 			// i.e. "Has the file changed since this date I've stored for the last time it was changed?"
@@ -166,7 +158,7 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 
 			// Arrange
 			BrowserCacheAttribute attribute = new BrowserCacheAttribute();
-			attribute.SettingsService = _settingsService;
+			attribute.SettingsService = GetSettingsService();
 
 			WikiController controller = CreateWikiController(attribute);
 			ResultExecutedContext filterContext = CreateContext(controller);
@@ -184,6 +176,13 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 			Assert.That(result.StatusDescription, Is.EqualTo("Not Modified"));
 		}
 
+		private SettingsService GetSettingsService()
+		{
+			_repositoryMock.SiteSettings.PluginLastSaveDate = _pluginLastSavedDate;
+			SettingsService service = new SettingsService(new ApplicationSettings(), _repositoryMock);
+			return service;
+		}
+
 		private WikiController CreateWikiController(BrowserCacheAttribute attribute)
 		{
 			// Settings
@@ -193,19 +192,19 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 			// PageService
 			PageViewModelCache pageViewModelCache = new PageViewModelCache(appSettings, CacheMock.RoadkillCache);
 			ListCache listCache = new ListCache(appSettings, CacheMock.RoadkillCache);
-			SiteCache siteCache = new SiteCache(CacheMock.RoadkillCache);
-			SearchServiceMock searchService = new SearchServiceMock(appSettings, _settingsRepository, _pageRepository, _pluginFactory);
-			PageHistoryService historyService = new PageHistoryService(appSettings, _settingsRepository, _pageRepository, userContext, pageViewModelCache, _pluginFactory);
-			PageService pageService = new PageService(appSettings, _settingsRepository, _pageRepository, searchService, historyService, userContext, listCache, pageViewModelCache, siteCache, _pluginFactory);
+			SiteCache siteCache = new SiteCache(appSettings, CacheMock.RoadkillCache);
+			SearchServiceMock searchService = new SearchServiceMock(appSettings, _repositoryMock, _pluginFactory);
+			PageHistoryService historyService = new PageHistoryService(appSettings, _repositoryMock, userContext, pageViewModelCache, _pluginFactory);
+			PageService pageService = new PageService(appSettings, _repositoryMock, searchService, historyService, userContext, listCache, pageViewModelCache, siteCache, _pluginFactory);
 
 			// WikiController
-			SettingsService settingsService = new SettingsService(new RepositoryFactoryMock(), appSettings);
+			SettingsService settingsService = new SettingsService(appSettings, _repositoryMock);
 			UserServiceStub userManager = new UserServiceStub();
 			WikiController wikiController = new WikiController(appSettings, userManager, pageService, userContext, settingsService);
 
 			// Create a page that the request is for
 			Page page = new Page() { Title = "title", ModifiedOn = _pageModifiedDate };
-			_pageRepository.AddNewPage(page, "text", "user", _pageCreatedDate);
+			_repositoryMock.AddNewPage(page, "text", "user", _pageCreatedDate);
 
 			// Update the BrowserCacheAttribute
 			attribute.ApplicationSettings = appSettings;

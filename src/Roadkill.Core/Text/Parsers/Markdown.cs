@@ -135,7 +135,55 @@ namespace Roadkill.Core.Converters
 	{
 		private const string _version = "1.13";
 
-		public MarkupParserHelp MarkupParserHelp { get; private set; }
+		public string BoldToken
+		{
+			get { return "**"; }
+		}
+
+		public string ItalicToken
+		{
+			get { return "*"; }
+		}
+
+		public string UnderlineToken
+		{
+			get { return ""; }
+		}
+
+		public string LinkStartToken
+		{
+			get { return "[%LINKTEXT%"; }
+		}
+
+		public string LinkEndToken
+		{
+			get { return "](%URL%)"; }
+		}
+
+		public string ImageStartToken
+		{
+			get { return "![%ALT%"; }
+		}
+
+		public string ImageEndToken
+		{
+			get { return "](%FILENAME%)"; }
+		}
+
+		public string BulletListToken
+		{
+			get { return "*"; }
+		}
+
+		public string NumberedListToken
+		{
+			get { return "1."; }
+		}
+
+		public string HeadingToken
+		{
+			get { return "#"; }
+		}
 
 		#region Constructors and Options
 
@@ -161,22 +209,7 @@ namespace Roadkill.Core.Converters
 		/// </summary>
 		public MarkdownParser(bool loadOptionsFromConfigFile)
 		{
-			MarkupParserHelp = new MarkupParserHelp()
-			{
-				BoldToken = "**",
-				ItalicToken = "*",
-				UnderlineToken = "",
-				LinkStartToken = "[%LINKTEXT%",
-				LinkEndToken = "](%URL%)",
-				ImageStartToken = "![%ALT%",
-				ImageEndToken = "](%FILENAME%)",
-				BulletListToken = "*",
-				NumberedListToken = "1.",
-				HeadingToken = "#",
-			};
-
-			if (!loadOptionsFromConfigFile) 
-				return;
+			if (!loadOptionsFromConfigFile) return;
 
 			var settings = ConfigurationManager.AppSettings;
 			foreach (string key in settings.Keys)
@@ -897,7 +930,7 @@ namespace Roadkill.Core.Converters
 
 				LinkEventArgs args = new LinkEventArgs(url, url, linkText, "");
 				OnLinkParsed(args);
-
+				
 				result = "<a href=\"" + args.Href + "\"";
 				result += AddNoRelToLink(args);
 
@@ -1015,7 +1048,7 @@ namespace Roadkill.Core.Converters
 
 		private string AddNoRelToLink(LinkEventArgs args)
 		{
-			if (args.IsInternalLink == false)
+			if (args.Href.StartsWith("http://") || args.Href.StartsWith("https://"))
 				return "rel=\"nofollow\" ";
 			else
 				return "";
@@ -1047,19 +1080,14 @@ namespace Roadkill.Core.Converters
 					({0})           # href = $3
 					[ ]*
 					(               # $4
-					    (['""])       # quote char = $5
-					    (.*?)           # title = $6
-					    \5              # matching quote
-					    [ ]*
-                    )?              # title is optional
-                    (\s=)?
-                    (
-                        (\d*)?x         # width
-                        (\d*)?          # height
-					)?              
+					(['""])       # quote char = $5
+					(.*?)           # title = $6
+					\5              # matching quote
+					[ ]*
+					)?              # title is optional
 				\)
 			  )", GetNestedParensPattern()),
-			RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline | RegexOptions.Compiled);
+				  RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline | RegexOptions.Compiled);
 
 		/// <summary>
 		/// Turn Markdown image shortcuts into HTML img tags. 
@@ -1102,7 +1130,7 @@ namespace Roadkill.Core.Converters
 				ImageEventArgs args = new ImageEventArgs(url, url, altText, "");
 				OnImageParsed(args);
 
-				result = string.Format("<img src=\"{0}\" class=\"img-responsive\" border=\"0\" alt=\"{1}\"", args.Src, args.Alt);
+				result = string.Format("<img src=\"{0}\" border=\"0\" alt=\"{1}\"", args.Src, args.Alt);
 
 				if (_titles.ContainsKey(linkID))
 				{
@@ -1123,15 +1151,11 @@ namespace Roadkill.Core.Converters
 			return result;
 		}
 
-
-
 		private string ImageInlineEvaluator(Match match)
 		{
 			string alt = match.Groups[2].Value;
 			string url = match.Groups[3].Value;
 			string title = match.Groups[6].Value;
-			string width = match.Groups[9].Value == String.Empty ? String.Empty : String.Format("{0}px", match.Groups[9].Value);
-			string height = match.Groups[10].Value == String.Empty ? String.Empty : String.Format("{0}px", match.Groups[10].Value);
 			string result;
 
 			alt = alt.Replace("\"", "&quot;");
@@ -1145,8 +1169,7 @@ namespace Roadkill.Core.Converters
 			ImageEventArgs args = new ImageEventArgs(url, url, alt, "");
 			OnImageParsed(args);
 
-
-			result = string.Format("<img src=\"{0}\" class=\"img-responsive\" border=\"0\" alt=\"{1}\" width=\"{2}\" height=\"{3}\"", args.Src, args.Alt, width, height);
+			result = string.Format("<img src=\"{0}\" border=\"0\" alt=\"{1}\"", args.Src, args.Alt);
 
 			if (!String.IsNullOrEmpty(title))
 			{

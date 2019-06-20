@@ -3,25 +3,24 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Moq;
 using NUnit.Framework;
+using Roadkill.Core;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
-using Roadkill.Core.Database.Repositories;
-using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Core.Services;
+using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Tests.Unit;
-using Roadkill.Tests.Unit.StubsAndMocks;
 
-namespace Roadkill.Tests.Integration.Search
+namespace Roadkill.Tests.Integration
 {
 	[TestFixture]
 	[Category("Integration")]
 	public class SearchServiceTests
 	{
-		private ISettingsRepository _settingsRepository;
+		private IRepository _repository;
 		private ApplicationSettings _config;
 		private PluginFactoryMock _pluginFactory;
-		private IPageRepository _pageRepository;
 
 		[SetUp]
 		public void Initialize()
@@ -30,24 +29,17 @@ namespace Roadkill.Tests.Integration.Search
 			if (Directory.Exists(indexPath))
 				Directory.Delete(indexPath, true);
 
-			_settingsRepository = new SettingsRepositoryMock();
-			_pageRepository = new PageRepositoryMock();
-
+			_repository = new RepositoryMock();
 			_config = new ApplicationSettings();
 			_config.Installed = true;
 			_pluginFactory = new PluginFactoryMock();
 		}
 
-		private SearchService CreateSearchService()
-		{
-			return new SearchService(_config, _settingsRepository, _pageRepository, _pluginFactory);
-		}
-
 		[Test]
-		public void search_with_no_field_returns_results()
+		public void Search_With_No_Field_Returns_Results()
 		{
 			// Arrange
-			SearchService searchService = CreateSearchService();
+			SearchService searchService = new SearchService(_config, _repository, _pluginFactory);
 			searchService.CreateIndex();
 
 			PageViewModel page1 = CreatePage(1, "admin", "title content", "tag1", "title content1");
@@ -64,10 +56,10 @@ namespace Roadkill.Tests.Integration.Search
 		}
 
 		[Test]
-		public void search_by_title()
+		public void Search_By_Title()
 		{
 			// Arrange
-			SearchService searchService = CreateSearchService();
+			SearchService searchService = new SearchService(_config, _repository, _pluginFactory);
 			searchService.CreateIndex();
 
 			PageViewModel page1 = CreatePage(1, "admin", "the title", "tag1", "title content");
@@ -88,10 +80,10 @@ namespace Roadkill.Tests.Integration.Search
 		}
 
 		[Test]
-		public void search_by_tagsfield_returns_multiple_results()
+		public void Search_By_TagsField_Returns_Multiple_Results()
 		{
 			// Arrange
-			SearchService searchService = CreateSearchService();
+			SearchService searchService = new SearchService(_config, _repository, _pluginFactory);
 			searchService.CreateIndex();
 
 			PageViewModel page1 = CreatePage(1, "admin", "random name1", "homepage1, tag1", "title content");
@@ -112,10 +104,10 @@ namespace Roadkill.Tests.Integration.Search
 		}
 
 		[Test]
-		public void search_by_idfield_returns_single_results()
+		public void Search_By_IdField_Returns_Single_Results()
 		{
 			// Arrange
-			SearchService searchService = CreateSearchService();
+			SearchService searchService = new SearchService(_config, _repository, _pluginFactory);
 			searchService.CreateIndex();
 
 			PageViewModel page1 = CreatePage(1, "admin", "random name2", "tag1", "title content");
@@ -136,10 +128,10 @@ namespace Roadkill.Tests.Integration.Search
 		}
 
 		[Test]
-		public void createdby_only_searchable_using_field_syntax()
+		public void CreatedBy_Only_Searchable_Using_Field_Syntax()
 		{
 			// Arrange
-			SearchService searchService = CreateSearchService();
+			SearchService searchService = new SearchService(_config, _repository, _pluginFactory);
 			searchService.CreateIndex();
 
 			PageViewModel page1 = CreatePage(1, "admin", "random name2", "homepage, tag1", "title content 11");
@@ -158,11 +150,11 @@ namespace Roadkill.Tests.Integration.Search
 		}
 
 		[Test]
-		public void search_by_createdonfield_returns_results()
+		public void Search_By_CreatedOnField_Returns_Results()
 		{
 			// Arrange
 			string todaysDate = DateTime.Today.ToShortDateString(); // (SearchService stores dates, not times)
-			SearchService searchService = CreateSearchService();
+			SearchService searchService = new SearchService(_config, _repository, _pluginFactory);
 			searchService.CreateIndex();
 
 			PageViewModel page1 = CreatePage(1, "admin", "random name2", "homepage, tag1", "title content", DateTime.Today);
@@ -183,10 +175,10 @@ namespace Roadkill.Tests.Integration.Search
 		}
 
 		[Test]
-		public void delete_should_remove_page_from_index()
+		public void Delete_Should_Remove_Page_From_Index()
 		{
 			// Arrange
-			SearchService searchService = CreateSearchService();
+			SearchService searchService = new SearchService(_config, _repository, _pluginFactory);
 			searchService.CreateIndex();
 
 			PageViewModel page1 = CreatePage(1, "admin", "homepage title", "homepage1, tag1", "title content");
@@ -204,10 +196,10 @@ namespace Roadkill.Tests.Integration.Search
 		}
 
 		[Test]
-		public void update_should_show_in_index_search()
+		public void Update_Should_Show_In_Index_Search()
 		{
 			// Arrange
-			SearchService searchService = CreateSearchService();
+			SearchService searchService = new SearchService(_config, _repository, _pluginFactory);
 			searchService.CreateIndex();
 
 			PageViewModel page1 = CreatePage(1, "admin", "homepage title", "homepage1, tag1", "title content");
@@ -239,7 +231,7 @@ namespace Roadkill.Tests.Integration.Search
 		public void Cyrillic_Content_Should_Be_Stored_And_Retrieved_Correctly()
 		{
 			// Arrange
-			SearchService searchService = CreateSearchService();
+			SearchService searchService = new SearchService(_config, _repository, _pluginFactory);
 			searchService.CreateIndex();
 
 			PageViewModel page1 = CreatePage(1, "admin", "ОШИБКА: неверная последовательность байт для кодировки", "tag1", 
@@ -259,7 +251,7 @@ namespace Roadkill.Tests.Integration.Search
 		public void GetContentSummary_Should_Only_Contain_First_150_Characters_For_Summary()
 		{
 			// Arrange
-			SearchService searchService = CreateSearchService();
+			SearchService searchService = new SearchService(_config, _repository, _pluginFactory);
 			searchService.CreateIndex();
 
 			PageViewModel page1 = CreatePage(1, "admin", "A page title", "tag1", "Lorizzle ipsizzle dolor sit amizzle, (pre character 150 boundary) rizzle adipiscing tellivizzle. Nullizzle sapizzle velizzle, yo mamma volutpat, suscipizzle bow wow wow, gravida vizzle, (post 150 character boundary) shizznit. Pellentesque da bomb tortizzle. Hizzle erizzle. Its fo rizzle izzle sheezy dapibizzle mofo tempizzle tempizzle. Maurizzle away nibh izzle turpis. Phat izzle hizzle. Pellentesque eleifend rhoncus rizzle. Da bomb things dang platea dictumst. Fo shizzle my nizzle dapibizzle. Shiz tellus owned, pretizzle eu, mattizzle ac, bow wow wow its fo rizzle, nunc. Shiz suscipit. Integizzle own yo' we gonna chung sed go to hizzle.");
@@ -279,7 +271,7 @@ namespace Roadkill.Tests.Integration.Search
 		public void GetContentSummary_Should_Remove_Html_From_Summary()
 		{
 			// Arrange
-			SearchService searchService = CreateSearchService();
+			SearchService searchService = new SearchService(_config, _repository, _pluginFactory);
 			searchService.CreateIndex();
 
 			PageViewModel page1 = CreatePage(1, "admin", "A page title", "tag1", "**some bold** \n\n=my header=");

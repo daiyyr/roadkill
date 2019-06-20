@@ -15,7 +15,6 @@ using LuceneVersion = Lucene.Net.Util.Version;
 using Lucene.Net.Store;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
-using Roadkill.Core.Database.Repositories;
 using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Core.Plugins;
 
@@ -24,7 +23,7 @@ namespace Roadkill.Core.Services
 	/// <summary>
 	/// Provides searching tasks using a Lucene.net search index.
 	/// </summary>
-	public class SearchService : ISearchService
+	public class SearchService : ServiceBase
 	{
 		private static Regex _removeTagsRegex = new Regex("<(.|\n)*?>");
 		private MarkupConverter _markupConverter;
@@ -32,30 +31,11 @@ namespace Roadkill.Core.Services
 		private IPluginFactory _pluginFactory;
 		private static readonly LuceneVersion LUCENEVERSION = LuceneVersion.LUCENE_29;
 
-		public ApplicationSettings ApplicationSettings { get; set; }
-		public ISettingsRepository SettingsRepository { get; set; }
-		public IPageRepository PageRepository { get; set; }
-
-		public SearchService(ApplicationSettings settings, ISettingsRepository settingsRepository, IPageRepository pageRepository, IPluginFactory pluginFactory)
+		public SearchService(ApplicationSettings settings, IRepository repository, IPluginFactory pluginFactory)
+			: base(settings, repository)
 		{
-			if (settings == null)
-				throw new ArgumentNullException(nameof(settings));
-
-			if (settingsRepository == null)
-				throw new ArgumentNullException(nameof(settingsRepository));
-
-			if (pageRepository == null)
-				throw new ArgumentNullException(nameof(pageRepository));
-
-			if (pluginFactory == null)
-				throw new ArgumentNullException(nameof(pluginFactory));
-
-			_markupConverter = new MarkupConverter(settings, settingsRepository, pageRepository, pluginFactory);
+			_markupConverter = new MarkupConverter(settings, repository, pluginFactory);
 			IndexPath = settings.SearchIndexPath;
-
-			ApplicationSettings = settings;
-			SettingsRepository = settingsRepository;
-			PageRepository = pageRepository;
 		}
 
 		/// <summary>
@@ -63,7 +43,7 @@ namespace Roadkill.Core.Services
 		/// </summary>
 		/// <param name="searchText">The text to search with.</param>
 		/// <remarks>Syntax reference: http://lucene.apache.org/java/2_3_2/queryparsersyntax.html#Wildcard</remarks>
-		/// <exception cref="SearchException">An error occurred searching the lucene.net index.</exception>
+		/// <exception cref="SearchException">An error occured searching the lucene.net index.</exception>
 		public virtual IEnumerable<SearchResultViewModel> Search(string searchText)
 		{
 			// This check is for the benefit of the CI builds
@@ -112,7 +92,7 @@ namespace Roadkill.Core.Services
 				}
 				catch (Exception ex)
 				{
-					throw new SearchException(ex, "An error occurred while searching the index, try rebuilding the search index via the admin tools to fix this.");
+					throw new SearchException(ex, "An error occured while searching the index, try rebuilding the search index via the admin tools to fix this.");
 				}
 			}
 
@@ -123,7 +103,7 @@ namespace Roadkill.Core.Services
 		/// Adds the specified page to the search index.
 		/// </summary>
 		/// <param name="model">The page to add.</param>
-		/// <exception cref="SearchException">An error occurred with the lucene.net IndexWriter while adding the page to the index.</exception>
+		/// <exception cref="SearchException">An error occured with the lucene.net IndexWriter while adding the page to the index.</exception>
 		public virtual void Add(PageViewModel model)
 		{
 			try
@@ -150,7 +130,7 @@ namespace Roadkill.Core.Services
 			catch (Exception ex)
 			{
 				if (!ApplicationSettings.IgnoreSearchIndexErrors)
-					throw new SearchException(ex, "An error occurred while adding page '{0}' to the search index", model.Title);
+					throw new SearchException(ex, "An error occured while adding page '{0}' to the search index", model.Title);
 			}
 		}
 
@@ -158,7 +138,7 @@ namespace Roadkill.Core.Services
 		/// Deletes the specified page from the search indexs.
 		/// </summary>
 		/// <param name="model">The page to remove.</param>
-		/// <exception cref="SearchException">An error occurred with the lucene.net IndexReader while deleting the page from the index.</exception>
+		/// <exception cref="SearchException">An error occured with the lucene.net IndexReader while deleting the page from the index.</exception>
 		public virtual int Delete(PageViewModel model)
 		{
 			try
@@ -175,7 +155,7 @@ namespace Roadkill.Core.Services
 			catch (Exception ex)
 			{
 				if (!ApplicationSettings.IgnoreSearchIndexErrors)
-					throw new SearchException(ex, "An error occurred while deleting page '{0}' from the search index", model.Title);
+					throw new SearchException(ex, "An error occured while deleting page '{0}' from the search index", model.Title);
 				else
 					return 0;
 			}
@@ -185,7 +165,7 @@ namespace Roadkill.Core.Services
 		/// Updates the <see cref="Page"/> in the search index, by removing it and re-adding it.
 		/// </summary>
 		/// <param name="model">The page to update</param>
-		/// <exception cref="SearchException">An error occurred with lucene.net while deleting the page or inserting it back into the index.</exception>
+		/// <exception cref="SearchException">An error occured with lucene.net while deleting the page or inserting it back into the index.</exception>
 		public virtual void Update(PageViewModel model)
 		{
 			EnsureDirectoryExists();
@@ -196,7 +176,7 @@ namespace Roadkill.Core.Services
 		/// <summary>
 		/// Creates the initial search index based on all pages in the system.
 		/// </summary>
-		/// <exception cref="SearchException">An error occurred with the lucene.net IndexWriter while adding the page to the index.</exception>
+		/// <exception cref="SearchException">An error occured with the lucene.net IndexWriter while adding the page to the index.</exception>
 		public virtual void CreateIndex()
 		{
 			EnsureDirectoryExists();
@@ -206,9 +186,9 @@ namespace Roadkill.Core.Services
 				StandardAnalyzer analyzer = new StandardAnalyzer(LUCENEVERSION);
 				using (IndexWriter writer = new IndexWriter(FSDirectory.Open(new DirectoryInfo(IndexPath)), analyzer, true, IndexWriter.MaxFieldLength.UNLIMITED))
 				{
-					foreach (Page page in PageRepository.AllPages().ToList())
+					foreach (Page page in Repository.AllPages().ToList())
 					{
-						PageViewModel pageModel = new PageViewModel(PageRepository.GetLatestPageContent(page.Id), _markupConverter);
+						PageViewModel pageModel = new PageViewModel(Repository.GetLatestPageContent(page.Id), _markupConverter);
 
 						Document document = new Document();
 						document.Add(new Field("id", pageModel.Id.ToString(), Field.Store.YES, Field.Index.ANALYZED));
@@ -228,7 +208,7 @@ namespace Roadkill.Core.Services
 			}
 			catch (Exception ex)
 			{
-				throw new SearchException(ex, "An error occurred while creating the search index");
+				throw new SearchException(ex, "An error occured while creating the search index");
 			}
 		}
 
@@ -241,7 +221,7 @@ namespace Roadkill.Core.Services
 			}
 			catch (IOException ex)
 			{
-				throw new SearchException(ex, "An error occurred while creating the search directory '{0}'", IndexPath);
+				throw new SearchException(ex, "An error occured while creating the search directory '{0}'", IndexPath);
 			}
 		}
 

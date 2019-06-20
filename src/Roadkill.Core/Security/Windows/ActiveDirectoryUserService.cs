@@ -1,6 +1,8 @@
-﻿#if !MONO
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.DirectoryServices.AccountManagement;
 using System.Web;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
@@ -37,7 +39,7 @@ namespace Roadkill.Core.Security.Windows
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ActiveDirectoryUserService"/> class.
 		/// </summary>
-		public ActiveDirectoryUserService(ApplicationSettings settings, IUserRepository repository, IActiveDirectoryProvider service)
+		public ActiveDirectoryUserService(ApplicationSettings settings, IRepository repository, IActiveDirectoryProvider service)
 			: base(settings, repository)
 		{
 			// Some guards
@@ -143,7 +145,7 @@ namespace Roadkill.Core.Security.Windows
 					users.AddRange(GetUsersInGroup(group));
 				}
 
-				return new HashSet<string>(users).Contains(CleanUsername(email));
+				return users.Contains(CleanUsername(email));
 			}
 			catch (Exception ex)
 			{
@@ -169,7 +171,7 @@ namespace Roadkill.Core.Security.Windows
 					users.AddRange(GetUsersInGroup(group));
 				}
 
-                return new HashSet<string>(users).Contains(CleanUsername(email));
+				return users.Contains(CleanUsername(email));
 			}
 			catch (Exception ex)
 			{
@@ -229,17 +231,6 @@ namespace Roadkill.Core.Security.Windows
 		public override string GetLoggedInUserName(HttpContextBase context)
 		{
 			return context.Request.LogonUserIdentity.Name;
-		}
-
-		/// <summary>
-		/// Gets the currently logged in user, based off the cookie or HttpContext user identity value set during authentication. 
-		/// For ActiveDirectory this is an empty <see cref="User"/> object with the Username property set to the cookieValue.
-		/// </summary>
-		/// <param name="cookieValue">The user id stored in the cookie.</param>
-		/// <returns>A new <see cref="User"/> object</returns>
-		public override User GetLoggedInUser(string cookieValue)
-		{
-			return new User() { Username = cookieValue };
 		}
 
 		/// <summary>
@@ -384,4 +375,3 @@ namespace Roadkill.Core.Security.Windows
 		#endregion
 	}
 }
-#endif

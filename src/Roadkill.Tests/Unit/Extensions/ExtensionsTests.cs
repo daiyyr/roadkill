@@ -1,16 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NUnit.Framework;
+using Roadkill.Core;
+using Roadkill.Core.Configuration;
+using Roadkill.Core.Converters;
 using Roadkill.Core.Extensions;
 
-namespace Roadkill.Tests.Unit.Extensions
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
 	public class ExtensionsTests
 	{
 		[Test]
-		public void clearmilliseconds_should_set_milliseconds_to_zero()
+		public void ClearMilliseconds_Should_Set_Milliseconds_To_Zero()
 		{
 			// Arrange
 			DateTime now = DateTime.UtcNow;
@@ -25,7 +30,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void tobase64_should_encode_string_with_expected_format()
+		public void ToBase64_Should_Encode_String_With_Expected_Format()
 		{
 			// Arrange
 			string expected = "dGhpcyBoYXMgYSBzcGFjZQ==";
@@ -38,7 +43,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void frombase64_should_dencode_string_to_plain_text()
+		public void FromBase64_Should_Dencode_String_To_Plain_Text()
 		{
 			// Arrange
 			string base64String = "dGhpcyBoYXMgYSBzcGFjZQ==";
@@ -52,7 +57,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void append_should_add_tabs_to_line()
+		public void Append_Should_Add_Tabs_To_Line()
 		{
 			// Arrange
 			StringBuilder builder = new StringBuilder();
@@ -66,7 +71,7 @@ namespace Roadkill.Tests.Unit.Extensions
 		}
 
 		[Test]
-		public void append_should_add_tabs_text()
+		public void Append_Should_Add_Tabs_Text()
 		{
 			// Arrange
 			StringBuilder builder = new StringBuilder();

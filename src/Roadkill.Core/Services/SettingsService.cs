@@ -1,4 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Configuration;
+using System.Web.Configuration;
+using System.DirectoryServices;
+using System.Web.Management;
+using System.Data.SqlClient;
+using System.IO;
+using System.Web;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
 using Roadkill.Core.Mvc.ViewModels;
@@ -8,20 +18,45 @@ namespace Roadkill.Core.Services
 	/// <summary>
 	/// Provides common tasks for changing the Roadkill application settings.
 	/// </summary>
-	public class SettingsService : ISettingsService
+	public class SettingsService : ServiceBase
 	{
-		private readonly IRepositoryFactory _repositoryFactory;
-		private readonly ApplicationSettings _applicationSettings;
-
-		public SettingsService(IRepositoryFactory repositoryFactory, ApplicationSettings applicationSettings)
+		public SettingsService(ApplicationSettings settings, IRepository repository)
+			: base(settings, repository)
 		{
-			_repositoryFactory = repositoryFactory;
-			_applicationSettings = applicationSettings;
 		}
 
-		public IEnumerable<RepositoryInfo> GetSupportedDatabases()
+		/// <summary>
+		/// Clears all users from the system.
+		/// </summary>
+		/// <exception cref="DatabaseException">An databaseerror occurred while clearing the user table.</exception>
+		public void ClearUserTable()
 		{
-			return _repositoryFactory.ListAll();
+			try
+			{
+				Repository.DeleteAllUsers();
+			}
+			catch (DatabaseException ex)
+			{
+				throw new DatabaseException(ex, "An exception occurred while clearing the user tables.");
+			}
+		}
+
+		/// <summary>
+		/// Creates the database schema tables.
+		/// </summary>
+		/// <param name="model">The settings data.</param>
+		/// <exception cref="DatabaseException">An datastore error occurred while creating the database tables.</exception>
+		public void CreateTables(SettingsViewModel model)
+		{
+			try
+			{
+				DataStoreType dataStoreType = DataStoreType.ByName(model.DataStoreTypeName);
+				Repository.Install(dataStoreType, model.ConnectionString, model.UseObjectCache);
+			}
+			catch (DatabaseException ex)
+			{
+				throw new DatabaseException(ex, "An exception occurred while creating the site schema tables.");
+			}
 		}
 
 		/// <summary>
@@ -30,8 +65,7 @@ namespace Roadkill.Core.Services
 		/// <returns></returns>
 		public SiteSettings GetSiteSettings()
 		{
-			var repository = _repositoryFactory.GetSettingsRepository(_applicationSettings.DatabaseName, _applicationSettings.ConnectionString);
-			return repository.GetSiteSettings();
+			return Repository.GetSiteSettings();
 		}
 
 		/// <summary>
@@ -59,8 +93,7 @@ namespace Roadkill.Core.Services
 				siteSettings.HeadContent = model.HeadContent;
 				siteSettings.MenuMarkup = model.MenuMarkup;
 
-				var repository = _repositoryFactory.GetSettingsRepository(_applicationSettings.DatabaseName, _applicationSettings.ConnectionString);
-				repository.SaveSiteSettings(siteSettings);
+				Repository.SaveSiteSettings(siteSettings);
 			}
 			catch (DatabaseException ex)
 			{

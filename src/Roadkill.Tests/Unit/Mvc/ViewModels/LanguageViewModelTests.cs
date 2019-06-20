@@ -1,16 +1,21 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using NUnit.Framework;
+using Roadkill.Core.Configuration;
 using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Plugins;
+using Roadkill.Tests.Unit.StubsAndMocks;
 
-namespace Roadkill.Tests.Unit.Mvc.ViewModels
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
 	public class LanguageViewModelTests
 	{
 		[Test]
-		public void constructor_should_set_properties()
+		public void Constructor_Should_Set_Properties()
 		{
 			// Arrange
 			string code = "en-GB";
@@ -25,13 +30,13 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void supportedlocales_should_return_list_of_languages()
+		public void SupportedLocales_Should_Return_List_Of_Languages()
 		{
 			// Arrange + Act
 			IEnumerable<LanguageViewModel> languages = LanguageViewModel.SupportedLocales();
 
 			// Assert
-			Assert.That(languages.Count(), Is.EqualTo(12));
+			Assert.That(languages.Count(), Is.EqualTo(11));
 		}
 	}
 }

@@ -5,9 +5,8 @@ using System.Text;
 using System.Configuration;
 using System.Xml;
 using System.Xml.XPath;
-using Roadkill.Core.Security;
 
-// Don't change the namespace to "Roadkill.Core.Configuration" it will break older web.config files
+// Don't change the namespace to "Roadkill.Core.Configuration" it will break legacy config files
 namespace Roadkill.Core 
 {
 	/// <summary>
@@ -26,16 +25,6 @@ namespace Roadkill.Core
 		}
 
 		/// <summary>
-		/// Gets or sets the api keys (comma seperated) used for access to the REST api. If this is empty, then the REST api is disabled.
-		/// </summary>
-		[ConfigurationProperty("apiKeys", IsRequired = false)]
-		public string ApiKeys
-		{
-			get { return (string)this["apiKeys"]; }
-			set { this["apiKeys"] = value; }
-		}
-
-		/// <summary>
 		/// Gets or sets the attachments folder, which should begin with "~/".
 		/// </summary>
 		[ConfigurationProperty("attachmentsFolder", IsRequired = true)]
@@ -46,7 +35,7 @@ namespace Roadkill.Core
 		}
 
 		/// <summary>
-		/// TODO: comments
+		/// Gets or sets the attachments folder, which should begin with "~/".
 		/// </summary>
 		[ConfigurationProperty("attachmentsRoutePath", IsRequired = false, DefaultValue = "Attachments")]
 		public string AttachmentsRoutePath
@@ -54,7 +43,6 @@ namespace Roadkill.Core
 			get { return (string)this["attachmentsRoutePath"]; }
 			set { this["attachmentsRoutePath"] = value; }
 		}
-
 
 		/// <summary>
 		/// Gets or sets the name of the connection string in the connectionstrings section.
@@ -64,6 +52,16 @@ namespace Roadkill.Core
 		{
 			get { return (string)this["connectionStringName"]; }
 			set { this["connectionStringName"] = value; }
+		}
+
+		/// <summary>
+		/// The database type for Roadkill. This defaults to SQLServer2005 (MongoDB on Mono) if empty - see DatabaseType enum for all options.
+		/// </summary>
+		[ConfigurationProperty("dataStoreType", IsRequired = false)]
+		public string DataStoreType
+		{
+			get { return (string)this["dataStoreType"]; }
+			set { this["dataStoreType"] = value; }
 		}
 
 		/// <summary>
@@ -138,6 +136,36 @@ namespace Roadkill.Core
 		}
 
 		/// <summary>
+		/// The type of logging to do, "XmlFile" by default.
+		/// </summary>
+		[ConfigurationProperty("logging", IsRequired = false, DefaultValue = "None")]
+		public string Logging
+		{
+			get { return (string)this["logging"]; }
+			set { this["logging"] = value; }
+		}
+
+		/// <summary>
+		/// The level of logging to perform (true by default).
+		/// </summary>
+		[ConfigurationProperty("logErrorsOnly", IsRequired = false, DefaultValue = true)]
+		public bool LogErrorsOnly
+		{
+			get { return (bool)this["logErrorsOnly"]; }
+			set { this["logErrorsOnly"] = value; }
+		}
+
+		/// <summary>
+		/// The repository type used for all datastore queries.
+		/// </summary>
+		[ConfigurationProperty("repositoryType", IsRequired = false, DefaultValue = "")]
+		public string RepositoryType
+		{
+			get { return (string)this["repositoryType"]; }
+			set { this["repositoryType"] = value; }
+		}
+
+		/// <summary>
 		/// Whether to remove all HTML tags from the markup except those found in the whitelist.xml file,
 		/// inside the App_Data folder.
 		/// </summary>
@@ -179,6 +207,7 @@ namespace Roadkill.Core
 			set { this["useObjectCache"] = value; }
 		}
 
+
 		/// <summary>
 		/// Indicates whether page content should be cached, if <see cref="UseObjectCache"/> is true.
 		/// </summary>
@@ -187,6 +216,18 @@ namespace Roadkill.Core
 		{
 			get { return (bool)this["useBrowserCache"]; }
 			set { this["useBrowserCache"] = value; }
+		}
+
+		/// <summary>
+		/// The version of the roadkill application running. If this is less than the current assembly version,
+		/// then it's assumed that an upgrade is required at startup.
+		/// </summary>
+		/// <remarks>Added in 1.6</remarks>
+		[ConfigurationProperty("version", IsRequired = false, DefaultValue = "")]
+		public string Version
+		{
+			get { return (string)this["version"]; }
+			set { this["version"] = value; }
 		}
 
 		/// <summary>
@@ -199,44 +240,65 @@ namespace Roadkill.Core
 			return false;
 		}
 
+		#region Legacy properties
 		/// <summary>
-		/// The database type for Roadkill. This defaults to SQLServer2008 (MongoDB on Mono) if empty.
+		/// Don't use this property - it's a legacy one (but still supported for non-breaking backwards compatibility), use "dataStoreType"
 		/// </summary>
-		[ConfigurationProperty("databaseName", IsRequired = false)]
-		internal string DatabaseName
+		/// <remarks>Renamed in 1.6</remarks>
+		[ConfigurationProperty("databaseType", IsRequired = false)]
+		[Obsolete("Legacy property, this is now dataStoreType")]
+		internal string DatabaseType
 		{
-			get { return (string)this["databaseName"]; }
-			set { this["databaseName"] = value; }
+			get { return (string)this["databaseType"]; }
+			set { this["databaseType"] = value; }
 		}
 
 		/// <summary>
-		/// TODO: comments + tests
+		/// Legacy property, this is now "useBrowserCache"
 		/// </summary>
-		[ConfigurationProperty("useAzureFileStorage", IsRequired = false, DefaultValue = false)]
-		public bool UseAzureFileStorage
+		/// <remarks>legacy, now ignored</remarks>
+		[ConfigurationProperty("cacheText", IsRequired = false, DefaultValue = false)]
+		[Obsolete("Legacy property, this is now useBrowserCache")]
+		internal bool CacheText
 		{
-			get { return (bool)this["useAzureFileStorage"]; }
-			set { this["useAzureFileStorage"] = value; }
+			get;
+			set;
+		}
+
+
+		/// <summary>
+		/// Legacy property, this is now "useObjectCache"
+		/// </summary>
+		/// <remarks>legacy, now ignored</remarks>
+		[ConfigurationProperty("cacheEnabled", IsRequired = false, DefaultValue = true)]
+		[Obsolete("Legacy property, this is now useObjectCache")]
+		internal bool CacheEnabled
+		{
+			get;
+			set;
 		}
 
 		/// <summary>
-		/// TODO: comments + tests
+		/// Legacy property, this is now "userServiceType"
 		/// </summary>
-		[ConfigurationProperty("azureConnectionString", IsRequired = false, DefaultValue = "Attachments")]
-		public string AzureConnectionString
+		[ConfigurationProperty("userManagerType", IsRequired = false)]
+		[Obsolete("Legacy property, this is now userServiceType")]
+		public string UserManagerType
 		{
-			get { return (string)this["azureConnectionString"]; }
-			set { this["azureConnectionString"] = value; }
+			get;
+			set;
 		}
 
 		/// <summary>
-		/// TODO: comments + tests
+		/// Whether to scale images dynamically on the page, using Javascript, so they fit inside the main page container (400x400px).
 		/// </summary>
-		[ConfigurationProperty("azureContainer", IsRequired = false, DefaultValue = "Attachments")]
-		public string AzureContainer
+		[ConfigurationProperty("resizeImages", IsRequired = false, DefaultValue = true)]
+		[Obsolete("This is now a text plugin")]
+		public bool ResizeImages
 		{
-			get { return (string)this["azureContainer"]; }
-			set { this["azureContainer"] = value; }
+			get;
+			set;
 		}
+		#endregion
 	}
 }

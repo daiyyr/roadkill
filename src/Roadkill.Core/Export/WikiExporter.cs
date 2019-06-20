@@ -8,7 +8,6 @@ using Ionic.Zip;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
 using Roadkill.Core.Database.Export;
-using Roadkill.Core.Database.Repositories;
 using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Core.Plugins;
 using Roadkill.Core.Services;
@@ -23,34 +22,22 @@ namespace Roadkill.Core.Domain.Export
 
 		public string ExportFolder { get; set; }
 
-		public WikiExporter(ApplicationSettings applicationSettings, PageService pageService, ISettingsRepository settingsRepository, IPageRepository pageRepository, IUserRepository userRepository, IPluginFactory pluginFactory)
+		public WikiExporter(ApplicationSettings applicationSettings, PageService pageService, IRepository repository, IPluginFactory pluginFactory)
 		{
 			if (applicationSettings == null)
-				throw new ArgumentNullException(nameof(applicationSettings));
+				throw new ArgumentNullException("applicationSettings");
 
 			if (pageService == null)
-				throw new ArgumentNullException(nameof(pageService));
-
-			if (settingsRepository == null)
-				throw new ArgumentNullException(nameof(settingsRepository));
-
-			if (pageRepository == null)
-				throw new ArgumentNullException(nameof(pageRepository));
-
-			if (userRepository == null)
-				throw new ArgumentNullException(nameof(userRepository));
-
-			if (pluginFactory == null)
-				throw new ArgumentNullException(nameof(pluginFactory));
+				throw new ArgumentNullException("pageService");
 
 			_applicationSettings = applicationSettings;
 			_pageService = pageService;
-			_sqlExportBuilder = new SqlExportBuilder(settingsRepository, userRepository, pageRepository, pluginFactory);
+			_sqlExportBuilder = new SqlExportBuilder(repository, pluginFactory);
 
 			ExportFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "Export");
 		}
 
-		public virtual Stream ExportAsXml()
+		public Stream ExportAsXml()
 		{
 			string xml = _pageService.ExportToXml();
 
@@ -64,7 +51,7 @@ namespace Roadkill.Core.Domain.Export
 			return stream;
 		}
 
-		public virtual Stream ExportAsSql()
+		public Stream ExportAsSql()
 		{
 			string sql = _sqlExportBuilder.Export();
 
@@ -77,7 +64,7 @@ namespace Roadkill.Core.Domain.Export
 			return stream;
 		}
 
-		public virtual void ExportAttachments(string filename)
+		public void ExportAttachments(string filename)
 		{
 			if (!Directory.Exists(ExportFolder))
 				Directory.CreateDirectory(ExportFolder);
@@ -90,7 +77,7 @@ namespace Roadkill.Core.Domain.Export
 			}
 		}
 
-		public virtual void ExportAsWikiFiles(string filename)
+		public void ExportAsWikiFiles(string filename)
 		{
 			if (string.IsNullOrEmpty(filename))
 				throw new ArgumentNullException("filename");
@@ -140,9 +127,7 @@ namespace Roadkill.Core.Domain.Export
 
 					Console.WriteLine(filePath);
 					File.WriteAllText(filePath, content);
-
-					if (!zip.ContainsEntry(filePath))
-						zip.AddFile(filePath, "");
+					zip.AddFile(filePath, "");
 				}
 
 				zip.Save();

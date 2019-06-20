@@ -5,7 +5,6 @@ using System.Text;
 using System.Web.Mvc;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Converters;
-using Roadkill.Core.DependencyResolution;
 using Roadkill.Core.Services;
 using StructureMap;
 using StructureMap.Attributes;
@@ -22,13 +21,13 @@ namespace Roadkill.Core.Mvc.WebViewPages
 
 		public RoadkillLayoutPage()
 		{
-			ApplicationSettings = LocatorStartup.Locator.GetInstance<ApplicationSettings>();
-			RoadkillContext = LocatorStartup.Locator.GetInstance<IUserContext>();
+			ApplicationSettings = ObjectFactory.GetInstance<ApplicationSettings>();
+			RoadkillContext = ObjectFactory.GetInstance<IUserContext>();
 
-			if (ApplicationSettings.Installed)
+			if (ApplicationSettings.Installed && !ApplicationSettings.UpgradeRequired)
 			{
-				MarkupConverter = LocatorStartup.Locator.GetInstance<MarkupConverter>();
-				SiteSettings = LocatorStartup.Locator.GetInstance<SettingsService>().GetSiteSettings();
+				MarkupConverter = ObjectFactory.GetInstance<MarkupConverter>();
+				SiteSettings = ObjectFactory.GetInstance<SettingsService>().GetSiteSettings();
 			}
 		}
 	}

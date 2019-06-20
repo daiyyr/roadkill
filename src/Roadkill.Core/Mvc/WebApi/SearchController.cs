@@ -1,13 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Web.Http;
+using Roadkill.Core.Configuration;
+using Roadkill.Core.Mvc.Attributes;
 using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Security;
 using Roadkill.Core.Services;
 
-namespace Roadkill.Core.Mvc.WebApi
+namespace Roadkill.Core.Mvc.Controllers.Api
 {
+	[WebApiAdminRequired]
 	[RoutePrefix("api/search")]
-	[ApiKeyAuthorize]
-	public class SearchController : ApiController
+	public class SearchController : ApiControllerBase
 	{
 		private readonly SearchService _searchService;
 
@@ -15,7 +21,8 @@ namespace Roadkill.Core.Mvc.WebApi
 		/// Initializes a new instance of the <see cref="SearchController"/> class.
 		/// </summary>
 		/// <param name="searchService">The search service.</param>
-		public SearchController(SearchService searchService)
+		public SearchController(SearchService searchService, ApplicationSettings appSettings, UserServiceBase userService, IUserContext userContext)
+			: base(appSettings, userService, userContext)
 		{
 			_searchService = searchService;
 		}

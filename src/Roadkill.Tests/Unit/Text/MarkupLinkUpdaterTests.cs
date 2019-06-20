@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Converters;
-using Roadkill.Tests.Unit.StubsAndMocks;
 
 namespace Roadkill.Tests.Unit.Text
 {
@@ -17,7 +16,7 @@ namespace Roadkill.Tests.Unit.Text
 		private MocksAndStubsContainer _container;
 
 		private ApplicationSettings _applicationSettings;
-		private PageRepositoryMock _pageRepository;
+		private RepositoryMock _repository;
 		private PluginFactoryMock _pluginFactory;
 		private MarkupConverter _markupConverter;
 		private SiteSettings _siteSettings;
@@ -31,11 +30,11 @@ namespace Roadkill.Tests.Unit.Text
 			_siteSettings = _container.SettingsService.GetSiteSettings();
 
 			_pluginFactory = _container.PluginFactory;
-			_pageRepository = _container.PageRepository;
+			_repository = _container.Repository;
 		}
 
 		[Test]
-		public void containspagelink_should_return_true_when_title_exists_in_creole()
+		public void ContainsPageLink_Should_Return_True_When_Title_Exists_In_Creole()
 		{
 			// Arrange
 			CreoleParser parser = new CreoleParser(_applicationSettings, _siteSettings);
@@ -51,7 +50,7 @@ namespace Roadkill.Tests.Unit.Text
 		}
 
 		[Test]
-		public void containspagelink_should_return_true_when_title_exists_in_markdown()
+		public void ContainsPageLink_Should_Return_True_When_Title_Exists_In_Markdown()
 		{
 			// Arrange
 			MarkdownParser parser = new MarkdownParser();
@@ -67,7 +66,7 @@ namespace Roadkill.Tests.Unit.Text
 		}
 
 		[Test]
-		public void containspagelink_should_return_false_when_title_has_no_dashes_in_markdown()
+		public void ContainsPageLink_Should_Return_False_When_Title_Has_No_Dashes_In_Markdown()
 		{
 			// Arrange
 			MarkdownParser parser = new MarkdownParser();
@@ -83,7 +82,7 @@ namespace Roadkill.Tests.Unit.Text
 		}
 
 		[Test]
-		public void containspagelink_should_return_false_when_title_does_not_exist_in_creole()
+		public void ContainsPageLink_Should_Return_False_When_Title_Does_Not_Exist_In_Creole()
 		{
 			// Arrange
 			CreoleParser parser = new CreoleParser(_applicationSettings, _siteSettings);
@@ -99,7 +98,7 @@ namespace Roadkill.Tests.Unit.Text
 		}
 
 		[Test]
-		public void containspagelink_should_return_false_when_title_does_not_exist_in_markdown()
+		public void ContainsPageLink_Should_Return_False_When_Title_Does_Not_Exist_In_Markdown()
 		{
 			// Arrange
 			MarkdownParser parser = new MarkdownParser();
@@ -115,7 +114,7 @@ namespace Roadkill.Tests.Unit.Text
 		}
 
 		[Test]
-		public void replacepagelinks_should_rename_basic_creole_title()
+		public void ReplacePageLinks_Should_Rename_Basic_Creole_Title()
 		{
 			// Arrange
 			CreoleParser parser = new CreoleParser(_applicationSettings, _siteSettings);
@@ -132,7 +131,7 @@ namespace Roadkill.Tests.Unit.Text
 		}
 
 		[Test]
-		public void replacepagelinks_should_rename_multiple_creole_titles()
+		public void ReplacePageLinks_Should_Rename_Multiple_Creole_Titles()
 		{
 			// Arrange
 			CreoleParser parser = new CreoleParser(_applicationSettings, _siteSettings);
@@ -154,7 +153,7 @@ namespace Roadkill.Tests.Unit.Text
 		}
 
 		[Test]
-		public void replacepagelinks_should_rename_title_inside_creole_markup_block()
+		public void ReplacePageLinks_Should_Rename_Title_Inside_Creole_Markup_Block()
 		{
 			// Arrange
 			CreoleParser parser = new CreoleParser(_applicationSettings, _siteSettings);
@@ -176,7 +175,7 @@ namespace Roadkill.Tests.Unit.Text
 		}
 
 		[Test]
-		public void replacepagelinks_should_not_rename_title_that_is_not_found_in_creole()
+		public void ReplacePageLinks_Should_Not_Rename_Title_That_Is_Not_Found_In_Creole()
 		{
 			// Arrange
 			CreoleParser parser = new CreoleParser(_applicationSettings, _siteSettings);
@@ -201,7 +200,7 @@ namespace Roadkill.Tests.Unit.Text
 		//  (Repeat for markdown)
 
 		[Test]
-		public void replacepagelinks_should_rename_basic_markdown_title()
+		public void ReplacePageLinks_Should_Rename_Basic_Markdown_Title()
 		{
 			// Arrange
 			MarkdownParser parser = new MarkdownParser();
@@ -218,7 +217,7 @@ namespace Roadkill.Tests.Unit.Text
 		}
 
 		[Test]
-		public void replacepagelinks_should_rename_multiple_markdown_titles()
+		public void ReplacePageLinks_Should_Rename_Multiple_Markdown_Titles()
 		{
 			// Arrange
 			MarkdownParser parser = new MarkdownParser();
@@ -240,7 +239,7 @@ namespace Roadkill.Tests.Unit.Text
 		}
 
 		[Test]
-		public void replacepagelinks_should_rename_title_inside_markdown_block()
+		public void ReplacePageLinks_Should_Rename_Title_Inside_Markdown_Block()
 		{
 			// Arrange
 			MarkdownParser parser = new MarkdownParser();
@@ -262,7 +261,7 @@ namespace Roadkill.Tests.Unit.Text
 		}
 
 		[Test]
-		public void replacepagelinks_should_not_rename_title_that_is_not_found_in_markdown()
+		public void ReplacePageLinks_Should_Not_Rename_Title_That_Is_Not_Found_In_Markdown()
 		{
 			// Arrange
 			MarkdownParser parser = new MarkdownParser();

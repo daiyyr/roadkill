@@ -2,7 +2,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title>@ViewBag.Title</title>
 	@Html.Partial("HeadContent")
 	@RenderSection("PluginHead", false)
@@ -43,12 +42,12 @@
 		<br class="clear" />
 		<div id="footer">
 			@RenderSection("PageDetailsFooter", false)
-			<p>
-				@SiteStrings.Shared_PoweredBy (@ApplicationSettings.ProductVersion).
-			</p>
-			<p>
-				@RenderSection("ViewHistoryLink", false)
-			</p>
+            <p style="display:none">
+                @SiteStrings.Shared_PoweredBy (@ApplicationSettings.ProductVersion).
+            </p>
+            <p style="display:none">
+                @RenderSection("ViewHistoryLink", false)
+            </p>
 		</div>
 
 		@RenderSection("PluginFooter", false)

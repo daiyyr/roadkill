@@ -1,14 +1,18 @@
-﻿using NUnit.Framework;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using NUnit.Framework;
 using Roadkill.Core.Attachments;
 
-namespace Roadkill.Tests.Unit.Attachments
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
 	public class MimeMappingTests
 	{
 		[Test]
-		public void should_return_application_mimetype_for_empty_extension()
+		public void Should_Return_Application_MimeType_For_Empty_Extension()
 		{
 			// Arrange
 			string expected = "application/octet-stream";
@@ -21,7 +25,7 @@ namespace Roadkill.Tests.Unit.Attachments
 		}
 
 		[Test]
-		public void should_return_application_mimetype_for_unknown_extension()
+		public void Should_Return_Application_MimeType_For_Unknown_Extension()
 		{
 			// Arrange
 			string expected = "application/octet-stream";
@@ -34,7 +38,7 @@ namespace Roadkill.Tests.Unit.Attachments
 		}
 
 		[Test]
-		public void should_ignore_case_for_extension()
+		public void Should_Ignore_Case_For_Extension()
 		{
 			// Arrange
 			string expected = "image/jpeg";

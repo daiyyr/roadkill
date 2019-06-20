@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Web;
+using Moq;
 using NUnit.Framework;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
-using Roadkill.Tests.Unit.StubsAndMocks.Mvc;
+using Roadkill.Tests.Unit;
 
 namespace Roadkill.Tests.Integration.Configuration
 {
@@ -14,37 +17,32 @@ namespace Roadkill.Tests.Integration.Configuration
 	public class ApplicationSettingsTests
 	{
 		[Test]
-		public void should_have_default_values_set_in_constructor()
+		public void Should_Have_Default_Values_Set_In_Constructor()
 		{
-			// Arrange + Act
+			// Arrange
+			string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+
+			// Act
 			ApplicationSettings appSettings = new ApplicationSettings();
 
 			// Assert
-			Assert.That(appSettings.AppDataPath,               Is.EqualTo(GetFullPath(@"App_Data")), "AppDataPath");
-			Assert.That(appSettings.AppDataInternalPath,       Is.EqualTo(GetFullPath(@"App_Data\Internal")), "AppDataInternalPath");
-			Assert.That(appSettings.CustomTokensPath,          Is.EqualTo(GetFullPath(@"App_Data\customvariables.xml")), "CustomTokensPath");
-			Assert.That(appSettings.EmailTemplateFolder,       Is.EqualTo(GetFullPath(@"App_Data\EmailTemplates")), "EmailTemplateFolder");
-			Assert.That(appSettings.HtmlElementWhiteListPath,  Is.EqualTo(GetFullPath(@"App_Data\Internal\htmlwhitelist.xml")), "HtmlElementWhiteListPath");
-			Assert.That(appSettings.SearchIndexPath,           Is.EqualTo(GetFullPath(@"App_Data\Internal\Search")), "SearchIndexPath");
-			Assert.That(appSettings.PluginsBinPath,            Is.EqualTo(GetFullPath(@"bin\Plugins")), "PluginsBinPath");
-			Assert.That(appSettings.PluginsPath,               Is.EqualTo(GetFullPath(@"Plugins")), "PluginsPath");
-
-			Assert.That(appSettings.NLogConfigFilePath, Is.EqualTo("~/App_Data/NLog.config"), "NLogConfigFilePath");
+			Assert.That(appSettings.AppDataPath, Is.EqualTo(baseDir +@"\App_Data"), "AppDataPath");
+			Assert.That(appSettings.AppDataInternalPath, Is.EqualTo(baseDir + @"\App_Data\Internal"), "AppDataInternalPath");
+			Assert.That(appSettings.CustomTokensPath, Is.EqualTo(baseDir + @"\App_Data\customvariables.xml"), "CustomTokensPath");
+			Assert.That(appSettings.EmailTemplateFolder, Is.EqualTo(baseDir + @"\App_Data\EmailTemplates"), "EmailTemplateFolder");
+			Assert.That(appSettings.HtmlElementWhiteListPath, Is.EqualTo(baseDir + @"\App_Data\Internal\htmlwhitelist.xml"), "HtmlElementWhiteListPath");
 			Assert.That(appSettings.MinimumPasswordLength, Is.EqualTo(6), "MinimumPasswordLength");
-			Assert.That(appSettings.DatabaseName == SupportedDatabases.SqlServer2008, "DatabaseName");
+			Assert.That(appSettings.DataStoreType, Is.EqualTo(DataStoreType.SqlServer2008), "DataStoreType");
 			Assert.That(appSettings.AttachmentsRoutePath, Is.EqualTo("Attachments"), "AttachmentsRoutePath");
 			Assert.That(appSettings.AttachmentsFolder, Is.EqualTo("~/App_Data/Attachments"), "AttachmentsFolder");
-			Assert.That(appSettings.ApiKeys, Is.Not.Null.And.Empty, "ApiKeys");
-		}
-
-		private string GetFullPath(string path)
-		{
-			string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-			return Path.Combine(baseDir, path);
+			Assert.That(appSettings.SearchIndexPath, Is.EqualTo(baseDir + @"\App_Data\Internal\Search"), "SearchIndexPath");
+			Assert.That(appSettings.SQLiteBinariesPath, Is.EqualTo(baseDir + @"\App_Data\Internal\SQLiteBinaries"), "SQLiteBinariesPath");
+			Assert.That(appSettings.PluginsBinPath, Is.EqualTo(baseDir + @"\bin\Plugins"), "PluginsBinPath");
+			Assert.That(appSettings.PluginsPath, Is.EqualTo(baseDir + @"\Plugins"), "PluginsPath");
 		}
 
 		[Test]
-		public void attachmentsdirectorypath_should_map_attachmentsfolder_and_end_with_slash()
+		public void AttachmentsDirectoryPath_Should_Map_AttachmentsFolder_And_End_With_Slash()
 		{
 			// Arrange
 			string attachmentsFolder = @"~/myfolder";
@@ -64,7 +62,7 @@ namespace Roadkill.Tests.Integration.Configuration
 		}
 
 		[Test]
-		public void attachmentsroutepath_should_use_attachmentsroutepath_and_prepend_applicationpath()
+		public void AttachmentsRoutePath_Should_Use_AttachmentsRoutePath_And_Prepend_ApplicationPath()
 		{
 			// Arrange
 			MvcMockContainer container = new MvcMockContainer();
@@ -79,19 +77,6 @@ namespace Roadkill.Tests.Integration.Configuration
 			
 			// Assert
 			Assert.That(actualUrlPath, Is.EqualTo(@"/wiki/Folder1/Folder2"));
-		}
-
-		[Test]
-		public void IsRestApiEnabled_should_be_true_when_api_keys_are_set()
-		{
-			// Arrange + Act
-			ApplicationSettings appSettings = new ApplicationSettings()
-			{
-				ApiKeys = new List<string>() {"1", "2"}
-			};
-
-			// Assert
-			Assert.That(appSettings.IsRestApiEnabled, Is.True);
 		}
 	}
 }

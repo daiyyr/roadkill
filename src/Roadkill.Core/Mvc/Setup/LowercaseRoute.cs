@@ -1,8 +1,11 @@
 ﻿using System;
-using System.Web.Mvc;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Web.Routing;
+using System.Web.Mvc;
 
-namespace Roadkill.Core.Mvc.Setup
+namespace Roadkill.Core.Mvc
 {
 	/// <summary>
 	/// Provides lowercase route mapping.

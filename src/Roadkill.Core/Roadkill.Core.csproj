@@ -21,8 +21,7 @@
     <SccProvider>
     </SccProvider>
     <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <WebGreaseLibPath>..\..\packages\WebGrease.1.5.2\lib</WebGreaseLibPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -90,6 +89,92 @@
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Download|AnyCPU'">
+    <OutputPath>bin\Download\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <DocumentationFile>bin\Download\Roadkill.Core.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Release\Roadkill.Core.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Download|x64'">
+    <OutputPath>bin\x64\Download\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <DocumentationFile>bin\Release\Roadkill.Core.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <CodeAnalysisLogFile>bin\x64\Release\Roadkill.Core.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Download|x86'">
+    <OutputPath>bin\x86\Download\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <DocumentationFile>bin\Release\Roadkill.Core.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisLogFile>bin\x86\Release\Roadkill.Core.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DemoSite|AnyCPU'">
+    <OutputPath>bin\DemoSite\</OutputPath>
+    <DefineConstants>TRACE;DEMOSITE</DefineConstants>
+    <DocumentationFile>bin\Release\Roadkill.Core.XML</DocumentationFile>
+    <Optimize>false</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DemoSite|x64'">
+    <OutputPath>bin\x64\DemoSite\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <DocumentationFile>bin\Release\Roadkill.Core.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DemoSite|x86'">
+    <OutputPath>bin\x86\DemoSite\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <DocumentationFile>bin\Release\Roadkill.Core.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Mono|AnyCPU'">
     <OutputPath>bin\Mono\</OutputPath>
     <DefineConstants>TRACE;RELEASE MONO</DefineConstants>
@@ -125,35 +210,29 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AngleSharp, Version=0.9.7.21214, Culture=neutral, PublicKeyToken=e83494dcdc6d31ea, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\AngleSharp.0.9.7\lib\net45\AngleSharp.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Antlr3.Runtime, Version=3.4.1.9004, Culture=neutral, PublicKeyToken=eb42632606e9261f, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Antlr.3.4.1.9004\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="Antlr3.Runtime, Version=3.5.0.2, Culture=neutral, PublicKeyToken=eb42632606e9261f, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="CommonMark, Version=0.1.0.0, Culture=neutral, PublicKeyToken=001ef8810438905d, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\CommonMark.NET.0.10.0\lib\net45\CommonMark.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Dapper, Version=1.50.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Dapper.1.50.2\lib\net45\Dapper.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="HtmlSanitizer, Version=3.0.0.0, Culture=neutral, PublicKeyToken=61c49a1a9e79cc28, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\HtmlSanitizer.3.3.132-beta\lib\net45\HtmlSanitizer.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="HtmlAgilityPack, Version=1.4.6.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\HtmlAgilityPack.1.4.6\lib\Net40\HtmlAgilityPack.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
-    <Reference Include="Ionic.Zip, Version=1.9.7.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\DotNetZip.1.9.7\lib\net20\Ionic.Zip.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Ionic.Zip, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\DotNetZip.1.9.1.8\lib\net20\Ionic.Zip.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
       <HintPath>..\..\lib\LightSpeed\Providers\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="LogentriesCore">
+      <HintPath>..\..\packages\logentries.core.2.4.1\lib\net40\LogentriesCore.dll</HintPath>
+    </Reference>
+    <Reference Include="LogentriesNLog">
+      <HintPath>..\..\packages\logentries.nlog.2.2.0\lib\net40\LogentriesNLog.dll</HintPath>
     </Reference>
     <Reference Include="Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -162,56 +241,12 @@
     <Reference Include="Memcached.ClientLibrary">
       <HintPath>..\..\lib\LightSpeed\Providers\Memcached.ClientLibrary.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Azure.KeyVault.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Azure.KeyVault.Core.1.0.0\lib\net40\Microsoft.Azure.KeyVault.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Data.Edm, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Data.Edm.5.6.4\lib\net40\Microsoft.Data.Edm.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Data.OData, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Data.OData.5.6.4\lib\net40\Microsoft.Data.OData.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Data.Services.Client, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Data.Services.Client.5.6.4\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Owin, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Owin.3.0.1\lib\net45\Microsoft.Owin.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Owin.Host.HttpListener, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Owin.Host.HttpListener.3.0.1\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Owin.Host.SystemWeb, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Owin.Host.SystemWeb.3.0.1\lib\net45\Microsoft.Owin.Host.SystemWeb.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Owin.Hosting, Version=2.0.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Owin.Hosting.2.0.2\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\CommonServiceLocator.1.3\lib\portable-net4+sl5+netcore45+wpa81+wp8\Microsoft.Practices.ServiceLocation.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Microsoft.Web.Administration, Version=7.9.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\lib\Microsoft.Web.Administration.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Web.Infrastructure">
-      <HintPath>..\..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Configuration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.WindowsAzure.ConfigurationManager.3.1.0\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Storage, Version=6.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\WindowsAzure.Storage.6.1.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Microsoft.WindowsAzure.Configuration">
+      <HintPath>..\..\packages\Microsoft.WindowsAzure.ConfigurationManager.2.0.2.0\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
     </Reference>
     <Reference Include="Mindscape.LightSpeed">
       <HintPath>..\..\lib\Lightspeed\Mindscape.LightSpeed.dll</HintPath>
@@ -225,83 +260,65 @@
     <Reference Include="Mindscape.LightSpeed.Providers.SqlServerCe4">
       <HintPath>..\..\lib\LightSpeed\Providers\Mindscape.LightSpeed.Providers.SqlServerCe4.dll</HintPath>
     </Reference>
-    <Reference Include="MongoDB.Bson, Version=2.1.1.5, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\MongoDB.Bson.2.1.1\lib\net45\MongoDB.Bson.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="MongoDB.Bson, Version=1.8.3.9, Culture=neutral, PublicKeyToken=f686731cfb9cc103, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\mongocsharpdriver.1.8.3\lib\net35\MongoDB.Bson.dll</HintPath>
     </Reference>
-    <Reference Include="MongoDB.Driver, Version=2.1.1.5, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\MongoDB.Driver.2.1.1\lib\net45\MongoDB.Driver.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="MongoDB.Driver.Core, Version=2.1.1.5, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\MongoDB.Driver.Core.2.1.1\lib\net45\MongoDB.Driver.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="MongoDB.Driver.Legacy, Version=2.1.1.5, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\mongocsharpdriver.2.1.1\lib\net45\MongoDB.Driver.Legacy.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="MongoDB.Driver, Version=1.8.3.9, Culture=neutral, PublicKeyToken=f686731cfb9cc103, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\mongocsharpdriver.1.8.3\lib\net35\MongoDB.Driver.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Security">
       <HintPath>..\..\lib\LightSpeed\Providers\Mono.Security.dll</HintPath>
     </Reference>
-    <Reference Include="MySql.Data, Version=6.9.8.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\MySql.Data.6.9.8\lib\net45\MySql.Data.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="MySql.Data, Version=6.7.4.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\MySql.Data.6.7.4\lib\net40\MySql.Data.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Newtonsoft.Json.5.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NLog.4.2.0\lib\net45\NLog.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="NLog, Version=2.1.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\NLog.2.1.0\lib\net45\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="Npgsql, Version=3.1.7.0, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Npgsql.3.1.7\lib\net45\Npgsql.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Npgsql">
+      <HintPath>..\..\lib\LightSpeed\Providers\Npgsql.dll</HintPath>
     </Reference>
     <Reference Include="Recaptcha, Version=1.0.5.0, Culture=neutral, PublicKeyToken=9afc4d65b28c38c2, processorArchitecture=MSIL">
       <HintPath>..\..\packages\recaptcha.1.0.5.0\lib\.NetFramework 4.0\Recaptcha.dll</HintPath>
     </Reference>
-    <Reference Include="StructureMap, Version=4.0.0.315, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\structuremap.4.0.0.315\lib\net40\StructureMap.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="StructureMap.Net4, Version=4.0.0.315, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\structuremap.4.0.0.315\lib\net40\StructureMap.Net4.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="StructureMap.Web, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\structuremap.web.3.1.0.133\lib\net40\StructureMap.Web.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Swashbuckle.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cd1bb07a5ac7c7bc, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Swashbuckle.Core.5.2.2\lib\net40\Swashbuckle.Core.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="StructureMap">
+      <HintPath>..\..\packages\structuremap.2.6.4.1\lib\net40\StructureMap.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data.Services.Client" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.SQLite, Version=1.0.89.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\System.Data.SQLite.1.0.89.0\lib\net45\System.Data.SQLite.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SQLite.Linq, Version=1.0.89.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\System.Data.SQLite.1.0.89.0\lib\net45\System.Data.SQLite.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\System.Data.SqlServerCe.dll</HintPath>
+    </Reference>
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
-    <Reference Include="System.Net.Http.Formatting, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Net.Http.Formatting, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.Client.5.0.0\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Spatial, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Spatial.5.6.4\lib\net40\System.Spatial.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System.Web">
       <Private>False</Private>
     </Reference>
@@ -310,41 +327,41 @@
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.Helpers.dll</HintPath>
-      <Private>True</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.0.0\lib\net45\System.Web.Helpers.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Http, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.Core.5.2.3\lib\net45\System.Web.Http.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Web.Http, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.Core.5.0.0\lib\net45\System.Web.Http.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Http.Owin, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.Owin.5.2.3\lib\net45\System.Web.Http.Owin.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Web.Http.WebHost, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.WebHost.5.0.0\lib\net45\System.Web.Http.WebHost.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Http.WebHost, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.WebHost.5.2.3\lib\net45\System.Web.Http.WebHost.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Web.Mvc, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.Mvc.5.0.0\lib\net45\System.Web.Mvc.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Mvc, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.Mvc.5.2.3\lib\net45\System.Web.Mvc.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Web.Optimization, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.Web.Optimization.1.1.2\lib\net40\System.Web.Optimization.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.Razor.3.2.3\lib\net45\System.Web.Razor.dll</HintPath>
-      <Private>True</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.Razor.3.0.0\lib\net45\System.Web.Razor.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Routing" />
     <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.dll</HintPath>
-      <Private>True</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.0.0\lib\net45\System.Web.WebPages.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.WebPages.Deployment, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
-      <Private>True</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.0.0\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
-      <Private>True</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.0.0\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
@@ -355,70 +372,33 @@
     <Reference Include="WebActivator">
       <HintPath>..\..\packages\WebActivator.1.0.0.0\lib\WebActivator.dll</HintPath>
     </Reference>
-    <Reference Include="WebActivatorEx, Version=2.0.0.0, Culture=neutral, PublicKeyToken=7b26dc2a43f6a0d4, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\WebActivatorEx.2.0.5\lib\net40\WebActivatorEx.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="WebGrease, Version=1.5.2.14234, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\WebGrease.1.5.2\lib\WebGrease.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Database\IRepositoryFactory.cs" />
-    <Compile Include="Database\Repositories\Dapper\DapperInstallerRepository.cs" />
-    <Compile Include="Database\Repositories\Dapper\DapperPageRepository.cs" />
-    <Compile Include="Database\Repositories\Dapper\DapperSettingsRepository.cs" />
-    <Compile Include="Database\Repositories\Dapper\DapperUserRepository.cs" />
-    <Compile Include="Database\Repositories\Dapper\IDbConnectionFactory.cs" />
-    <Compile Include="Database\Repositories\Dapper\PostgresConnectionFactory.cs" />
-    <Compile Include="Database\Repositories\Dapper\SqlConnectionFactory.cs" />
-    <Compile Include="Database\Repositories\IDatabaseTester.cs" />
-    <Compile Include="Database\Repositories\IInstallerRepository.cs" />
-    <Compile Include="Database\Repositories\DatabaseTester.cs" />
-    <Compile Include="Database\Repositories\LightSpeed\LightSpeedInstallerRepository.cs" />
-    <Compile Include="Database\Repositories\LightSpeed\LightSpeedUserRepository.cs" />
-    <Compile Include="Database\Repositories\LightSpeed\LightSpeedSettingsRepository.cs" />
-    <Compile Include="Database\Repositories\MongoDB\MongoDbInstallerRepository.cs" />
-    <Compile Include="Database\Repositories\MongoDB\MongoDBUserRepository.cs" />
-    <Compile Include="Database\Repositories\MongoDB\MongoDBSettingsRepository.cs" />
-    <Compile Include="Database\RepositoryFactory.cs" />
-    <Compile Include="Database\RepositoryInfo.cs" />
-    <Compile Include="Database\SupportedDatabases.cs" />
-    <Compile Include="DependencyResolution\ISetterInjected.cs" />
-    <Compile Include="DependencyResolution\MVC\MvcAttributeProvider.cs" />
-    <Compile Include="DependencyResolution\MVC\MvcModelBinders.cs" />
-    <Compile Include="DependencyResolution\LocatorStartup.cs" />
     <Compile Include="Attachments\AttachmentPathUtil.cs" />
     <Compile Include="Attachments\IResponseWrapper.cs" />
     <Compile Include="Attachments\ResponseWrapper.cs" />
     <Compile Include="Database\Repositories\ISettingsRepository.cs" />
-    <Compile Include="DependencyResolution\StructureMap\LightSpeedRegistry.cs" />
-    <Compile Include="DependencyResolution\StructureMap\RoadkillRegistry.cs" />
-    <Compile Include="DependencyResolution\StructureMap\StructureMapServiceLocator.cs" />
-    <Compile Include="DependencyResolution\StructureMap\StructureMapHttpModule.cs" />
     <Compile Include="Email\EmailClient.cs" />
     <Compile Include="Email\IEmailClient.cs" />
-    <Compile Include="Exceptions\FileException.cs" />
     <Compile Include="Extensions\BootstrapHtmlExtensions.cs" />
+    <Compile Include="Configuration\UpgradeChecker.cs" />
     <Compile Include="Configuration\ConfigReaderWriter.cs" />
     <Compile Include="Configuration\FullTrustConfigReaderWriter.cs" />
     <Compile Include="Database\Export\SqlExportBuilder.cs" />
     <Compile Include="Database\Repositories\LightSpeed\DatabaseLogger.cs" />
+    <Compile Include="DI\RepositoryManager.cs" />
+    <Compile Include="DI\ServiceLocator.cs" />
     <Compile Include="Cache\CacheKeys.cs" />
     <Compile Include="Cache\IPluginCache.cs" />
     <Compile Include="Cache\SiteCache.cs" />
     <Compile Include="Export\WikiExporter.cs" />
     <Compile Include="Extensions\UrlHelperExtensions.cs" />
-    <Compile Include="Import\MatchComparer.cs" />
-    <Compile Include="Import\ScrewTurnMigrationExtensions.cs" />
-    <Compile Include="Mvc\Setup\SwashbuckleApplyApiKeySecurity.cs" />
-    <Compile Include="Mvc\WebApi\ApiKeyAuthorizeAttribute.cs" />
-    <Compile Include="Owin\InstallCheckMiddleware.cs" />
     <Compile Include="Mvc\Attributes\IAuthorizationAttribute.cs" />
     <Compile Include="Mvc\Controllers\ConfigurationTesterController.cs" />
-    <Compile Include="Mvc\Controllers\IRoadkillController.cs" />
-    <Compile Include="Plugins\PluginFileManager.cs" />
     <Compile Include="Security\AuthorizationProvider.cs" />
     <Compile Include="Security\IAuthorizationProvider.cs" />
     <Compile Include="Security\FormsAuthenticationWrapper.cs" />
@@ -436,6 +416,11 @@
       <DependentUpon>SiteStrings.resx</DependentUpon>
     </Compile>
     <Compile Include="Mvc\Attributes\CacheContentTypeAttribute.cs" />
+    <Compile Include="Mvc\Attributes\WebApiEditorRequiredAttribute.cs" />
+    <Compile Include="Mvc\Attributes\WebApiAdminRequiredAttribute.cs" />
+    <Compile Include="DI\ISetterInjected.cs" />
+    <Compile Include="DI\Mvc\MvcAttributeProvider.cs" />
+    <Compile Include="DI\Mvc\MvcDependencyResolver.cs" />
     <Compile Include="Logging\Level.cs" />
     <Compile Include="Logging\Log.cs" />
     <Compile Include="Configuration\ApplicationSettings.cs" />
@@ -447,10 +432,26 @@
     <Compile Include="Mvc\Controllers\SpecialPagesController.cs" />
     <Compile Include="Mvc\ViewModels\CacheViewModel.cs" />
     <Compile Include="Mvc\ViewModels\TestResult.cs" />
+    <Compile Include="Mvc\WebApi\ApiControllerBase.cs" />
+    <Compile Include="Mvc\WebApi\Help\ApiDescriptionExtensions.cs" />
+    <Compile Include="Mvc\WebApi\Help\App_Start\HelpPageConfig.cs" />
+    <Compile Include="Mvc\WebApi\Help\Controllers\HelpController.cs" />
+    <Compile Include="Mvc\WebApi\Help\HelpPageAreaRegistration.cs" />
+    <Compile Include="Mvc\WebApi\Help\HelpPageConfigurationExtensions.cs" />
+    <Compile Include="Mvc\WebApi\Help\Models\HelpPageApiModel.cs" />
+    <Compile Include="Mvc\WebApi\Help\SampleGeneration\HelpPageSampleGenerator.cs" />
+    <Compile Include="Mvc\WebApi\Help\SampleGeneration\HelpPageSampleKey.cs" />
+    <Compile Include="Mvc\WebApi\Help\SampleGeneration\ImageSample.cs" />
+    <Compile Include="Mvc\WebApi\Help\SampleGeneration\InvalidSample.cs" />
+    <Compile Include="Mvc\WebApi\Help\SampleGeneration\ObjectGenerator.cs" />
+    <Compile Include="Mvc\WebApi\Help\SampleGeneration\SampleDirection.cs" />
+    <Compile Include="Mvc\WebApi\Help\SampleGeneration\TextSample.cs" />
+    <Compile Include="Mvc\WebApi\Help\XmlDocumentationProvider.cs" />
     <Compile Include="Mvc\WebApi\UserController.cs" />
     <Compile Include="Mvc\WebApi\SearchController.cs" />
     <Compile Include="Mvc\WebApi\PagesController.cs" />
     <Compile Include="Mvc\Controllers\SiteSettings\PluginSettingsController.cs" />
+    <Compile Include="Mvc\Setup\Bundles.cs" />
     <Compile Include="Mvc\Setup\ExtendedRazorViewEngine.cs" />
     <Compile Include="Mvc\Controllers\FileManagerController.cs" />
     <Compile Include="Mvc\Setup\Routing.cs" />
@@ -458,13 +459,15 @@
     <Compile Include="Mvc\ViewModels\PluginViewModel.cs" />
     <Compile Include="Mvc\WebViewPages\RoadkillLayoutPage.cs" />
     <Compile Include="Mvc\WebViewPages\RoadkillViewPage.cs" />
+    <Compile Include="Mvc\Controllers\UpgradeController.cs" />
     <Compile Include="Cache\PageViewModelCache.cs" />
     <Compile Include="Cache\ListCache.cs" />
     <Compile Include="Database\Repositories\IUserRepository.cs" />
     <Compile Include="Database\Repositories\IPageRepository.cs" />
+    <Compile Include="Database\DataStoreType.cs" />
     <Compile Include="Database\Entities\IDataStoreEntity.cs" />
     <Compile Include="Database\Repositories\LightSpeed\Conversion\ToEntity.cs" />
-    <Compile Include="Database\Repositories\LightSpeed\LightSpeedPageRepository.cs" />
+    <Compile Include="Database\Repositories\LightSpeed\LightSpeedRepository.cs" />
     <Compile Include="Database\Repositories\LightSpeed\Conversion\FromEntity.cs" />
     <Compile Include="Database\Repositories\LightSpeed\PageEntity.cs" />
     <Compile Include="Database\Repositories\LightSpeed\PageContentEntity.cs" />
@@ -474,13 +477,14 @@
     <Compile Include="Database\Schema\MySql\MySqlSchema.cs" />
     <Compile Include="Database\Schema\Postgres\PostgresSchema.cs" />
     <Compile Include="Database\Schema\SchemaBase.cs" />
+    <Compile Include="Database\Schema\Sqlite\SqliteSchema.cs" />
+    <Compile Include="Database\Schema\SqlServerCE\SqlServerCESchema.cs" />
     <Compile Include="Database\Schema\SqlServer\SqlServerSchema.cs" />
-    <Compile Include="Services\AzureFileService.cs" />
-    <Compile Include="Services\IFileService.cs" />
-    <Compile Include="Services\IInstallationService.cs" />
     <Compile Include="Services\IPageService.cs" />
-    <Compile Include="Database\Repositories\MongoDB\MongoDBPageRepository.cs" />
+    <Compile Include="Database\Repositories\MongoDB\MongoDBRepository.cs" />
+    <Compile Include="Exceptions\UpgradeException.cs" />
     <Compile Include="Attachments\MimeTypes.cs" />
+    <Compile Include="DI\DependencyManager.cs" />
     <Compile Include="Mvc\Attributes\OptionalAuthorizationAttribute.cs" />
     <Compile Include="Mvc\Attributes\RecaptchaRequiredAttribute.cs" />
     <Compile Include="Mvc\Attributes\ImportModelStateAttribute.cs" />
@@ -494,9 +498,10 @@
     <Compile Include="Security\Windows\IPrincipalDetails.cs" />
     <Compile Include="Security\Windows\IActiveDirectoryProvider.cs" />
     <Compile Include="Security\Windows\ActiveDirectoryProvider.cs" />
+    <Compile Include="Database\Repositories\IRepository.cs" />
     <Compile Include="Exceptions\IoCException.cs" />
     <Compile Include="Attachments\AttachmentFileHandler.cs" />
-    <Compile Include="Mvc\Controllers\SiteSettings\UserController.cs" />
+    <Compile Include="Mvc\Controllers\UserController.cs" />
     <Compile Include="Email\ResetPasswordEmail.cs" />
     <Compile Include="Email\SignupEmail.cs" />
     <Compile Include="Email\EmailTemplate.cs" />
@@ -505,25 +510,27 @@
     <Compile Include="Exceptions\DatabaseException.cs" />
     <Compile Include="Attachments\AttachmentRouteHandler.cs" />
     <Compile Include="Security\IUserContext.cs" />
+    <Compile Include="DI\Mvc\MvcModelBinders.cs" />
     <Compile Include="Configuration\RoadkillSection.cs" />
     <Compile Include="Mvc\Controllers\InstallController.cs" />
     <Compile Include="Mvc\Controllers\WikiController.cs" />
     <Compile Include="Mvc\Controllers\HelpController.cs" />
     <Compile Include="Plugins\IPluginFactory.cs" />
     <Compile Include="Plugins\SettingFormType.cs" />
-    <Compile Include="Plugins\SpecialPagePlugin.cs" />
+    <Compile Include="Plugins\SpecialPages\BuiltIn\RandomPage.cs" />
+    <Compile Include="Plugins\SpecialPages\SpecialPagePlugin.cs" />
+    <Compile Include="Plugins\Text\BuiltIn\ClickableImages.cs" />
+    <Compile Include="Plugins\Text\BuiltIn\ResizeImages.cs" />
+    <Compile Include="Plugins\Text\BuiltIn\ExternalLinksInNewWindow.cs" />
+    <Compile Include="Plugins\Text\BuiltIn\Jumbotron.cs" />
+    <Compile Include="Plugins\Text\BuiltIn\MathJax.cs" />
+    <Compile Include="Plugins\Text\BuiltIn\ToC\TocPlugin.cs" />
     <Compile Include="Plugins\Settings.cs" />
     <Compile Include="Plugins\SettingValue.cs" />
-    <Compile Include="Plugins\TextPlugin.cs" />
+    <Compile Include="Plugins\Text\TextPlugin.cs" />
     <Compile Include="Plugins\PluginFactory.cs" />
-    <Compile Include="Services\ISearchService.cs" />
-    <Compile Include="Services\ISettingsService.cs" />
-    <Compile Include="Services\LocalFileService.cs" />
-    <Compile Include="Services\InstallationService.cs" />
-    <Compile Include="Startup.cs" />
+    <Compile Include="Plugins\Text\BuiltIn\SyntaxHighlighter.cs" />
     <Compile Include="Text\MarkupLinkUpdater.cs" />
-    <Compile Include="Text\MarkupParserHelp.cs" />
-    <Compile Include="Text\Parsers\Legacy\CreoleParser.cs" />
     <Compile Include="Text\TextPluginRunner.cs" />
     <Compile Include="Text\UrlResolver.cs" />
     <Compile Include="Text\MenuParser.cs" />
@@ -533,14 +540,20 @@
     <Compile Include="Text\Sanitizer\HtmlWhiteList.cs" />
     <Compile Include="Text\Sanitizer\HtmlAttribute.cs" />
     <Compile Include="Text\Sanitizer\HtmlElement.cs" />
+    <Compile Include="Text\Sanitizer\MarkupSanitizer.cs" />
     <Compile Include="Text\ImageEventArgs.cs" />
     <Compile Include="Text\IMarkupParser.cs" />
     <Compile Include="Text\LinkEventArgs.cs" />
+    <Compile Include="Text\Parsers\MediaWikiParser.cs" />
     <Compile Include="Security\Windows\ActiveDirectoryUserService.cs" />
     <Compile Include="Security\FormsAuthUserService.cs" />
     <Compile Include="Security\UserServiceBase.cs" />
     <Compile Include="Services\SettingsService.cs" />
     <Compile Include="Database\Entities\User.cs" />
+    <Compile Include="Services\ServiceBase.cs" />
+    <Compile Include="Plugins\Text\BuiltIn\ToC\StringTemplate.cs" />
+    <Compile Include="Plugins\Text\BuiltIn\ToC\Item.cs" />
+    <Compile Include="Plugins\Text\BuiltIn\ToC\Tree.cs" />
     <Compile Include="Mvc\ViewModels\FileViewModel.cs" />
     <Compile Include="Mvc\ViewModels\UserViewModel.cs" />
     <Compile Include="Exceptions\HistoryException.cs" />
@@ -556,6 +569,7 @@
     <Compile Include="Mvc\Controllers\SiteSettings\SettingsController.cs" />
     <Compile Include="Mvc\ViewModels\PageHistoryViewModel.cs" />
     <Compile Include="Mvc\ViewModels\TagViewModel.cs" />
+    <Compile Include="Text\Parsers\CreoleParser.cs" />
     <Compile Include="Text\HtmlDiff.cs" />
     <Compile Include="Text\Parsers\Markdown.cs" />
     <Compile Include="Text\MarkupConverter.cs" />
@@ -572,6 +586,8 @@
     <Compile Include="Database\Entities\Page.cs" />
     <Compile Include="Mvc\ViewModels\PageViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RoadkillApplication.cs" />
+    <Compile Include="Plugins\Text\BuiltIn\ToC\TocParser.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
@@ -581,14 +597,30 @@
   <ItemGroup>
     <EmbeddedResource Include="Database\Schema\Postgres\Create.sql" />
     <EmbeddedResource Include="Database\Schema\Postgres\Drop.sql" />
+    <EmbeddedResource Include="Database\Schema\Sqlite\Create.sql" />
+    <EmbeddedResource Include="Database\Schema\Sqlite\Drop.sql" />
     <EmbeddedResource Include="Database\Schema\SqlServer\Create.sql" />
     <EmbeddedResource Include="Database\Schema\SqlServer\Drop.sql" />
+    <EmbeddedResource Include="Database\Schema\SqlServerCE\Create2.sql" />
+    <EmbeddedResource Include="Database\Schema\SqlServerCE\Create3.sql" />
+    <EmbeddedResource Include="Database\Schema\SqlServerCE\Create4.sql" />
+    <EmbeddedResource Include="Database\Schema\SqlServerCE\Create5.sql" />
+    <EmbeddedResource Include="Database\Schema\SqlServerCE\Drop1.sql" />
+    <EmbeddedResource Include="Database\Schema\SqlServerCE\Drop4.sql" />
+    <EmbeddedResource Include="Database\Schema\SqlServerCE\Drop3.sql" />
+    <EmbeddedResource Include="Database\Schema\SqlServerCE\Drop2.sql" />
+    <EmbeddedResource Include="Database\Schema\SqlServerCE\Create1.sql" />
     <EmbeddedResource Include="Database\Schema\MySql\Create.sql" />
     <EmbeddedResource Include="Database\Schema\MySql\Drop.sql" />
+    <EmbeddedResource Include="Database\Schema\MySql\Upgrade.sql" />
+    <EmbeddedResource Include="Database\Schema\Postgres\Upgrade.sql" />
+    <EmbeddedResource Include="Database\Schema\Sqlite\Upgrade.sql" />
+    <EmbeddedResource Include="Database\Schema\SqlServer\Upgrade.sql" />
+    <EmbeddedResource Include="Database\Schema\SqlServerCE\Upgrade1.sql" />
+    <EmbeddedResource Include="Database\Schema\SqlServerCE\Upgrade2.sql" />
     <EmbeddedResource Include="Localization\InstallStrings.cs.resx" />
     <EmbeddedResource Include="Localization\InstallStrings.de.resx" />
-    <EmbeddedResource Include="Localization\InstallStrings.es.resx" />
-    <EmbeddedResource Include="Localization\InstallStrings.ca.resx">
+    <EmbeddedResource Include="Localization\InstallStrings.es.resx">
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Localization\InstallStrings.hi.resx" />
@@ -603,22 +635,41 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Localization\InstallStrings.ru.resx" />
     <EmbeddedResource Include="Localization\InstallStrings.sv.resx" />
-    <EmbeddedResource Include="Localization\SiteStrings.cs.resx" />
-    <EmbeddedResource Include="Localization\SiteStrings.de.resx" />
-    <EmbeddedResource Include="Localization\SiteStrings.es.resx" />
-    <EmbeddedResource Include="Localization\SiteStrings.ca.resx" />
-    <EmbeddedResource Include="Localization\SiteStrings.hi.resx" />
-    <EmbeddedResource Include="Localization\SiteStrings.it.resx" />
-    <EmbeddedResource Include="Localization\SiteStrings.nl.resx" />
-    <EmbeddedResource Include="Localization\SiteStrings.pl.resx" />
-    <EmbeddedResource Include="Localization\SiteStrings.pt.resx" />
+    <EmbeddedResource Include="Localization\SiteStrings.cs.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Localization\SiteStrings.de.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Localization\SiteStrings.es.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Localization\SiteStrings.hi.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Localization\SiteStrings.it.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Localization\SiteStrings.nl.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Localization\SiteStrings.pl.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Localization\SiteStrings.pt.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="Localization\SiteStrings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>SiteStrings.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Localization\SiteStrings.ru.resx" />
-    <EmbeddedResource Include="Localization\SiteStrings.sv.resx" />
+    <EmbeddedResource Include="Localization\SiteStrings.ru.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Localization\SiteStrings.sv.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Localization\readme.txt" />

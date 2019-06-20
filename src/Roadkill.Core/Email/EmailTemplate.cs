@@ -10,8 +10,6 @@ using System.Configuration;
 using Roadkill.Core.Mvc.ViewModels;
 using System.IO;
 using System.Globalization;
-using Roadkill.Core.Database;
-using Roadkill.Core.Database.Repositories;
 
 namespace Roadkill.Core.Email
 {
@@ -33,7 +31,6 @@ namespace Roadkill.Core.Email
 		protected ApplicationSettings ApplicationSettings;
 		protected SiteSettings SiteSettings;
 		protected IEmailClient EmailClient;
-		protected ISettingsRepository SettingsRepository;
 
 		/// <summary>
 		/// The HTML template for the email.
@@ -48,20 +45,14 @@ namespace Roadkill.Core.Email
 		/// <summary>
 		/// Initializes a new instance of the <see cref="EmailTemplate"/> class.
 		/// </summary>
-		/// <param name="applicationSettings">Application wide settings</param>
-		/// <param name="settingsRepository">The repository retrieve the site settings from</param>
+		/// <param name="applicationSettings"></param>
+		/// <param name="siteSettings"></param>
 		/// <param name="emailClient">The <see cref="IEmailClient"/> to send the mail through. If this 
 		/// parameter is null, then <see cref="EmailClient"/> is used</param>
-		protected EmailTemplate(ApplicationSettings applicationSettings, ISettingsRepository settingsRepository, IEmailClient emailClient)
+		protected EmailTemplate(ApplicationSettings applicationSettings, SiteSettings siteSettings, IEmailClient emailClient)
 		{
-			if (applicationSettings == null)
-				throw new ArgumentNullException(nameof(applicationSettings));
-
-			if (settingsRepository == null)
-				throw new ArgumentNullException(nameof(settingsRepository));
-
 			ApplicationSettings = applicationSettings;
-			SettingsRepository = settingsRepository;
+			SiteSettings = siteSettings;
 			
 			EmailClient = emailClient;
 			if (EmailClient == null)
@@ -144,9 +135,6 @@ namespace Roadkill.Core.Email
 		/// <param name="template"></param>
 		protected internal virtual string ReplaceTokens(UserViewModel model, string template)
 		{
-			if (SiteSettings == null)
-				SiteSettings = SettingsRepository.GetSiteSettings();
-
 			string result = template;
 
 			result = result.Replace("{FIRSTNAME}", model.Firstname);

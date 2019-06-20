@@ -1,17 +1,18 @@
-﻿using System.Web.Http;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Web;
+using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Routing;
-using Roadkill.Core.Mvc.WebApi;
-using Swashbuckle.Application;
 
-namespace Roadkill.Core.Mvc.Setup
+namespace Roadkill.Core.Mvc
 {
 	public class Routing
 	{
 		public static void Register(RouteCollection routes)
 		{
-			// Additional routing can be found in SiteSettingsAreaRegistration
-
 			routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 			routes.IgnoreRoute("favicon.ico");
 
@@ -52,6 +53,15 @@ namespace Roadkill.Core.Mvc.Setup
 				new { controller = "Pages", action = "ByUser", title = UrlParameter.Optional }
 			);
 
+			// Be explicit for the help controller, as it gets confused with the WebAPI one
+			routes.MapRoute(
+				"Roadkill.Core.Mvc.Controllers.HelpController",
+				"help/{action}/{id}",
+				new { controller = "Help", action = "Index", id = UrlParameter.Optional },
+				null,
+				new string[] { "Roadkill.Core.Mvc.Controllers" }
+			);
+
 			// Default
 			routes.MapLowercaseRoute(
 				"Default", // Route name
@@ -88,7 +98,7 @@ namespace Roadkill.Core.Mvc.Setup
 			);
 		}
 
-		public static void RegisterWebApi(HttpConfiguration config)
+		public static void RegisterApi(System.Web.Http.HttpConfiguration config)
 		{
 			config.MapHttpAttributeRoutes();
 
@@ -99,27 +109,7 @@ namespace Roadkill.Core.Mvc.Setup
 				defaults: new { id = RouteParameter.Optional }
 			);
 
-			RegisterSwashBuckle(config);
-
 			config.EnsureInitialized();
-		}
-
-		private static void RegisterSwashBuckle(HttpConfiguration config)
-		{
-			config
-				.EnableSwagger(c =>
-				{
-					c.SingleApiVersion("3.0", "Roadkill Web API");
-
-					var applyApiKeySecurity = new SwashbuckleApplyApiKeySecurity(
-					key: ApiKeyAuthorizeAttribute.APIKEY_HEADER_KEY,
-					name: ApiKeyAuthorizeAttribute.APIKEY_HEADER_KEY,
-					description: "API key",
-					@in: "header"
-					);
-					applyApiKeySecurity.Apply(c);
-				})
-				.EnableSwaggerUi();
 		}
 	}
 }

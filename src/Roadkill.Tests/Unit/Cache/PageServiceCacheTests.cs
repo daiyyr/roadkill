@@ -15,7 +15,6 @@ using Roadkill.Core.Mvc.Attributes;
 using Roadkill.Core.Mvc.Controllers;
 using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Tests.Unit.StubsAndMocks;
-using Roadkill.Tests.Unit.StubsAndMocks.Mvc;
 
 namespace Roadkill.Tests.Unit.Cache
 {
@@ -32,13 +31,12 @@ namespace Roadkill.Tests.Unit.Cache
 		}
 
 		[Test]
-		public void getbyid_should_add_to_cache_when_pagesummary_does_not_exist_in_cache()
+		public void GetById_Should_Add_To_Cache_When_PageSummary_Does_Not_Exist_In_Cache()
 		{
 			// Arrange
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
+			RepositoryMock repository = new RepositoryMock();
 			CacheMock pageModelCache = new CacheMock();
-			PageService pageService = CreatePageService(pageModelCache, null, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(pageModelCache, null, repository);
 
 			PageViewModel expectedModel = CreatePageViewModel();
 			expectedModel = pageService.AddPage(expectedModel); // get it back to update the version no.
@@ -51,20 +49,19 @@ namespace Roadkill.Tests.Unit.Cache
 			string cacheKey = CacheKeys.PageViewModelKey(1, PageViewModelCache.LATEST_VERSION_NUMBER);
 			Assert.That(cacheItem.Key, Is.EqualTo(cacheKey));
 
-			PageViewModel actualModel = (PageViewModel)cacheItem.Value;
+			PageViewModel actualModel = (PageViewModel) cacheItem.Value;
 			Assert.That(actualModel.Id, Is.EqualTo(expectedModel.Id));
 			Assert.That(actualModel.VersionNumber, Is.EqualTo(expectedModel.VersionNumber));
 			Assert.That(actualModel.Title, Is.EqualTo(expectedModel.Title));
 		}
 
 		[Test]
-		public void getbyid_should_load_from_cache_when_pagesummary_exists_in_cache()
+		public void GetById_Should_Load_From_Cache_When_PageSummary_Exists_In_Cache()
 		{
 			// Arrange
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
+			RepositoryMock repository = new RepositoryMock();
 			CacheMock pageModelCache = new CacheMock();
-			PageService pageService = CreatePageService(pageModelCache, null, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(pageModelCache, null, repository);
 
 			PageViewModel expectedModel = CreatePageViewModel();
 			string cacheKey = CacheKeys.PageViewModelKey(1, PageViewModelCache.LATEST_VERSION_NUMBER);
@@ -80,15 +77,14 @@ namespace Roadkill.Tests.Unit.Cache
 		}
 
 		[Test]
-		public void addpage_should_clear_list_and_pagesummary_caches()
+		public void AddPage_Should_Clear_List_And_PageSummary_Caches()
 		{
 			// Arrange
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
+			RepositoryMock repository = new RepositoryMock();
 			CacheMock pageModelCache = new CacheMock();
 			CacheMock listCache = new CacheMock();
 
-			PageService pageService = CreatePageService(pageModelCache, listCache, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(pageModelCache, listCache, repository);
 			PageViewModel expectedModel = CreatePageViewModel();
 			AddPageCacheItem(pageModelCache, "key", expectedModel);
 			AddListCacheItem(listCache, "key", new List<string>() { "tag1", "tag2" });
@@ -109,11 +105,10 @@ namespace Roadkill.Tests.Unit.Cache
 			string cacheKey = (loadPageContent) ? (CacheKeys.AllPagesWithContent()) : (CacheKeys.AllPages());
 
 			// Arrange
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
+			RepositoryMock repository = new RepositoryMock();
 			CacheMock listCache = new CacheMock();
 
-			PageService pageService = CreatePageService(null, listCache, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(null, listCache, repository);
 			PageViewModel expectedModel = CreatePageViewModel();
 			AddListCacheItem(listCache, cacheKey, new List<PageViewModel>() { expectedModel });
 
@@ -132,13 +127,12 @@ namespace Roadkill.Tests.Unit.Cache
 			// Arrange
 			string cacheKey = (loadPageContent) ? (CacheKeys.AllPagesWithContent()) : (CacheKeys.AllPages());
 
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
-			pageRepository.AddNewPage(new Page() { Title = "1" }, "text", "admin", DateTime.UtcNow);
-			pageRepository.AddNewPage(new Page() { Title = "2" }, "text", "admin", DateTime.UtcNow);
+			RepositoryMock repository = new RepositoryMock();
+			repository.AddNewPage(new Page() { Title = "1" }, "text", "admin", DateTime.UtcNow);
+			repository.AddNewPage(new Page() { Title = "2" }, "text", "admin", DateTime.UtcNow);
 
 			CacheMock listCache = new CacheMock();
-			PageService pageService = CreatePageService(null, listCache, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(null, listCache, repository);
 
 			// Act
 			pageService.AllPages(loadPageContent);
@@ -149,17 +143,16 @@ namespace Roadkill.Tests.Unit.Cache
 		}
 
 		[Test]
-		public void allpagescreatedby_should_load_from_cache()
+		public void AllPagesCreatedBy_Should_Load_From_Cache()
 		{
 			string adminCacheKey = CacheKeys.AllPagesCreatedByKey("admin");
 			string editorCacheKey = CacheKeys.AllPagesCreatedByKey("editor");
 
 			// Arrange
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
+			RepositoryMock repository = new RepositoryMock();
 			CacheMock listCache = new CacheMock();
 
-			PageService pageService = CreatePageService(null, listCache, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(null, listCache, repository);
 			PageViewModel adminModel = CreatePageViewModel();
 			PageViewModel editorModel = CreatePageViewModel("editor");
 			listCache.Add(CacheKeys.AllPagesCreatedByKey("admin"), new List<PageViewModel>() { adminModel }, new CacheItemPolicy());
@@ -175,19 +168,18 @@ namespace Roadkill.Tests.Unit.Cache
 		}
 
 		[Test]
-		public void allpagescreatedby_should_add_to_cache_when_cache_is_empty()
+		public void AllPagesCreatedBy_Should_Add_To_Cache_When_Cache_Is_Empty()
 		{
 			// Arrange
 			string adminCacheKey = CacheKeys.AllPagesCreatedByKey("admin");
 
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
-			pageRepository.AddNewPage(new Page() { Title = "1" }, "text", "admin", DateTime.UtcNow);
-			pageRepository.AddNewPage(new Page() { Title = "2" }, "text", "admin", DateTime.UtcNow);
-			pageRepository.AddNewPage(new Page() { Title = "3" }, "text", "editor", DateTime.UtcNow);
+			RepositoryMock repository = new RepositoryMock();
+			repository.AddNewPage(new Page() { Title = "1" }, "text", "admin", DateTime.UtcNow);
+			repository.AddNewPage(new Page() { Title = "2" }, "text", "admin", DateTime.UtcNow);
+			repository.AddNewPage(new Page() { Title = "3" }, "text", "editor", DateTime.UtcNow);
 
 			CacheMock listCache = new CacheMock();
-			PageService pageService = CreatePageService(null, listCache, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(null, listCache, repository);
 
 			// Act
 			pageService.AllPagesCreatedBy("admin");
@@ -198,14 +190,13 @@ namespace Roadkill.Tests.Unit.Cache
 		}
 
 		[Test]
-		public void alltags_should_load_from_cache()
+		public void AllTags_Should_Load_From_Cache()
 		{
 			// Arrange
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
+			RepositoryMock repository = new RepositoryMock();
 			CacheMock listCache = new CacheMock();
 
-			PageService pageService = CreatePageService(null, listCache, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(null, listCache, repository);
 			List<string> expectedTags = new List<string>() { "tag1", "tag2", "tag3" };
 			AddListCacheItem(listCache, CacheKeys.AllTags(), expectedTags);
 
@@ -217,16 +208,15 @@ namespace Roadkill.Tests.Unit.Cache
 		}
 
 		[Test]
-		public void alltags_should_add_to_cache_when_cache_is_empty()
+		public void AllTags_Should_Add_To_Cache_When_Cache_Is_Empty()
 		{
 			// Arrange
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
-			pageRepository.AddNewPage(new Page() { Tags = "tag1;tag2" }, "text", "admin", DateTime.UtcNow);
-			pageRepository.AddNewPage(new Page() { Tags = "tag3;tag4" }, "text", "admin", DateTime.UtcNow);
+			RepositoryMock repository = new RepositoryMock();
+			repository.AddNewPage(new Page() { Tags = "tag1;tag2" }, "text", "admin", DateTime.UtcNow);
+			repository.AddNewPage(new Page() { Tags = "tag3;tag4" }, "text", "admin", DateTime.UtcNow);
 
 			CacheMock listCache = new CacheMock();
-			PageService pageService = CreatePageService(null, listCache, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(null, listCache, repository);
 
 			// Act
 			pageService.AllTags();
@@ -237,16 +227,15 @@ namespace Roadkill.Tests.Unit.Cache
 		}
 
 		[Test]
-		public void deletepage_should_clear_list_and_pagesummary_caches()
+		public void DeletePage_Should_Clear_List_And_PageSummary_Caches()
 		{
 			// Arrange
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
-			pageRepository.AddNewPage(new Page(), "text", "admin", DateTime.UtcNow);
+			RepositoryMock repository = new RepositoryMock();
+			repository.AddNewPage(new Page(), "text", "admin", DateTime.UtcNow);
 			CacheMock pageCache = new CacheMock();
 			CacheMock listCache = new CacheMock();
 
-			PageService pageService = CreatePageService(pageCache, listCache, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(pageCache, listCache, repository);
 			PageViewModel expectedModel = CreatePageViewModel();
 			AddPageCacheItem(pageCache, "key", expectedModel);
 			AddListCacheItem(listCache, "key", new List<string>() { "tag1", "tag2" });
@@ -260,14 +249,13 @@ namespace Roadkill.Tests.Unit.Cache
 		}
 
 		[Test]
-		public void findhomepage_should_load_from_cache()
+		public void FindHomePage_Should_Load_From_Cache()
 		{
 			// Arrange
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
+			RepositoryMock repository = new RepositoryMock();
 			CacheMock modelCache = new CacheMock();
 
-			PageService pageService = CreatePageService(modelCache, null, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(modelCache, null, repository);
 			PageViewModel expectedModel = CreatePageViewModel();
 			expectedModel.RawTags = "homepage";
 			modelCache.Add(CacheKeys.HomepageKey(), expectedModel, new CacheItemPolicy());
@@ -282,15 +270,14 @@ namespace Roadkill.Tests.Unit.Cache
 		}
 
 		[Test]
-		public void findhomepage_should_add_to_cache_when_cache_is_empty()
+		public void FindHomePage_Should_Add_To_Cache_When_Cache_Is_Empty()
 		{
 			// Arrange
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
-			pageRepository.AddNewPage(new Page() { Title = "1", Tags = "homepage" }, "text", "admin", DateTime.UtcNow);
+			RepositoryMock repository = new RepositoryMock();
+			repository.AddNewPage(new Page() { Title = "1", Tags= "homepage" }, "text", "admin", DateTime.UtcNow);
 
 			CacheMock pageCache = new CacheMock();
-			PageService pageService = CreatePageService(pageCache, null, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(pageCache, null, repository);
 
 			// Act
 			pageService.FindHomePage();
@@ -301,17 +288,16 @@ namespace Roadkill.Tests.Unit.Cache
 		}
 
 		[Test]
-		public void findbytag_should_load_from_cache()
+		public void FindByTag_Should_Load_From_Cache()
 		{
 			string tag1CacheKey = CacheKeys.PagesByTagKey("tag1");
 			string tag2CacheKey = CacheKeys.PagesByTagKey("tag2");
 
 			// Arrange
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
+			RepositoryMock repository = new RepositoryMock();
 			CacheMock listCache = new CacheMock();
 
-			PageService pageService = CreatePageService(null, listCache, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(null, listCache, repository);
 			PageViewModel tag1Model = CreatePageViewModel();
 			tag1Model.RawTags = "tag1";
 			PageViewModel tag2Model = CreatePageViewModel();
@@ -330,19 +316,18 @@ namespace Roadkill.Tests.Unit.Cache
 		}
 
 		[Test]
-		public void findbytag_should_add_to_cache_when_cache_is_empty()
+		public void FindByTag_Should_Add_To_Cache_When_Cache_Is_Empty()
 		{
 			// Arrange
 			string cacheKey = CacheKeys.PagesByTagKey("tag1");
 
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
-			pageRepository.AddNewPage(new Page() { Title = "1", Tags = "tag1" }, "text", "admin", DateTime.UtcNow);
-			pageRepository.AddNewPage(new Page() { Title = "2", Tags = "tag2" }, "text", "admin", DateTime.UtcNow);
-			pageRepository.AddNewPage(new Page() { Title = "2", Tags = "tag3" }, "text", "admin", DateTime.UtcNow);
+			RepositoryMock repository = new RepositoryMock();
+			repository.AddNewPage(new Page() { Title = "1", Tags = "tag1" }, "text", "admin", DateTime.UtcNow);
+			repository.AddNewPage(new Page() { Title = "2", Tags = "tag2" }, "text", "admin", DateTime.UtcNow);
+			repository.AddNewPage(new Page() { Title = "2", Tags = "tag3" }, "text", "admin", DateTime.UtcNow);
 
 			CacheMock listCache = new CacheMock();
-			PageService pageService = CreatePageService(null, listCache, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(null, listCache, repository);
 
 			// Act
 			pageService.FindByTag("tag1");
@@ -353,25 +338,24 @@ namespace Roadkill.Tests.Unit.Cache
 		}
 
 		[Test]
-		public void updatepage_should_clear_list_cache_and_pagesummary_cache()
+		public void UpdatePage_Should_Clear_List_Cache_And_PageSummary_Cache()
 		{
 			// Arrange
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
-			pageRepository.AddNewPage(new Page() { Tags = "homepage" }, "text", "admin", DateTime.UtcNow);
-			pageRepository.AddNewPage(new Page() { Tags = "tag2" }, "text", "admin", DateTime.UtcNow);
+			RepositoryMock repository = new RepositoryMock();
+			repository.AddNewPage(new Page() { Tags = "homepage" }, "text", "admin", DateTime.UtcNow);
+			repository.AddNewPage(new Page() { Tags = "tag2" }, "text", "admin", DateTime.UtcNow);
 
 			CacheMock pageCache = new CacheMock();
 			CacheMock listCache = new CacheMock();
-			PageService pageService = CreatePageService(pageCache, listCache, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(pageCache, listCache, repository);
 
 			PageViewModel homepageModel = CreatePageViewModel();
-			homepageModel.Id = 1;
+			homepageModel.Id = 1;		
 			PageViewModel page2Model = CreatePageViewModel();
 			page2Model.Id = 2;
 
 			AddPageCacheItem(pageCache, CacheKeys.HomepageKey(), homepageModel);
-			pageCache.Add(CacheKeys.PageViewModelKey(2, 0), page2Model, new CacheItemPolicy());
+			pageCache.Add(CacheKeys.PageViewModelKey(2,0), page2Model, new CacheItemPolicy());
 			AddListCacheItem(listCache, CacheKeys.AllTags(), new List<string>() { "tag1", "tag2" });
 
 			// Act
@@ -383,16 +367,15 @@ namespace Roadkill.Tests.Unit.Cache
 		}
 
 		[Test]
-		public void updatepage_should_remove_homepage_from_cache_when_homepage_is_updated()
+		public void UpdatePage_Should_Remove_Homepage_From_Cache_When_Homepage_Is_Updated()
 		{
 			// Arrange
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
-			pageRepository.AddNewPage(new Page() { Tags = "homepage" }, "text", "admin", DateTime.UtcNow);
+			RepositoryMock repository = new RepositoryMock();
+			repository.AddNewPage(new Page() { Tags = "homepage" }, "text", "admin", DateTime.UtcNow);
 
 			CacheMock pageCache = new CacheMock();
 			CacheMock listCache = new CacheMock();
-			PageService pageService = CreatePageService(pageCache, listCache, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(pageCache, listCache, repository);
 
 			PageViewModel homepageModel = CreatePageViewModel();
 			homepageModel.RawTags = "homepage";
@@ -406,20 +389,19 @@ namespace Roadkill.Tests.Unit.Cache
 		}
 
 		[Test]
-		public void renametag_should_clear_listcache()
+		public void RenameTag_Should_Clear_ListCache()
 		{
 			// Arrange
 			string tag1CacheKey = CacheKeys.PagesByTagKey("tag1");
-			SettingsRepositoryMock settingsRepository = new SettingsRepositoryMock();
-			PageRepositoryMock pageRepository = new PageRepositoryMock();
-			pageRepository.AddNewPage(new Page() { Tags = "homepage, tag1" }, "text1", "admin", DateTime.UtcNow);
+			RepositoryMock repository = new RepositoryMock();
+			repository.AddNewPage(new Page() { Tags = "homepage, tag1" }, "text1", "admin", DateTime.UtcNow);
 
 			CacheMock listCache = new CacheMock();
 			PageViewModel homepageModel = CreatePageViewModel();
 			PageViewModel page1Model = CreatePageViewModel();
 			AddListCacheItem(listCache, tag1CacheKey, new List<PageViewModel>() { homepageModel, page1Model });
 
-			PageService pageService = CreatePageService(null, listCache, settingsRepository, pageRepository);
+			PageService pageService = CreatePageService(null, listCache, repository);
 
 			// Act
 			pageService.RenameTag("tag1", "some.other.tag"); // calls UpdatePage, which clears the cache
@@ -439,7 +421,7 @@ namespace Roadkill.Tests.Unit.Cache
 			return model;
 		}
 
-		private PageService CreatePageService(ObjectCache pageObjectCache, ObjectCache listObjectCache, SettingsRepositoryMock settingsRepository, PageRepositoryMock pageRepository)
+		private PageService CreatePageService(ObjectCache pageObjectCache, ObjectCache listObjectCache, RepositoryMock repository)
 		{
 			// Stick to memorycache when each one isn't used
 			if (pageObjectCache == null)
@@ -455,10 +437,10 @@ namespace Roadkill.Tests.Unit.Cache
 			// PageService
 			PageViewModelCache pageViewModelCache = new PageViewModelCache(appSettings, pageObjectCache);
 			ListCache listCache = new ListCache(appSettings, listObjectCache);
-			SiteCache siteCache = new SiteCache(CacheMock.RoadkillCache);
-			SearchServiceMock searchService = new SearchServiceMock(appSettings, settingsRepository, pageRepository, _pluginFactory);
-			PageHistoryService historyService = new PageHistoryService(appSettings, settingsRepository, pageRepository, userContext, pageViewModelCache, _pluginFactory);
-			PageService pageService = new PageService(appSettings, settingsRepository, pageRepository, searchService, historyService, userContext, listCache, pageViewModelCache, siteCache, _pluginFactory);
+			SiteCache siteCache = new SiteCache(appSettings, CacheMock.RoadkillCache);
+			SearchServiceMock searchService = new SearchServiceMock(appSettings, repository, _pluginFactory);
+			PageHistoryService historyService = new PageHistoryService(appSettings, repository, userContext, pageViewModelCache, _pluginFactory);
+			PageService pageService = new PageService(appSettings, repository, searchService, historyService, userContext, listCache, pageViewModelCache, siteCache, _pluginFactory);
 
 			return pageService;
 		}

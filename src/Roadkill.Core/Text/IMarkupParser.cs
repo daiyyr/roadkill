@@ -27,8 +27,53 @@ namespace Roadkill.Core.Converters
 		event EventHandler<LinkEventArgs> LinkParsed;
 
 		/// <summary>
-		/// Help/documentation for the parser's tokens.
+		/// The start and end tokens to indicate bold text.
 		/// </summary>
-		MarkupParserHelp MarkupParserHelp { get; }
+		string BoldToken { get; }
+
+		/// <summary>
+		/// The start end end tokens to underline italic text.
+		/// </summary>
+		string UnderlineToken { get; }
+
+		/// <summary>
+		/// The start end end tokens to indicate italic text.
+		/// </summary>
+		string ItalicToken { get; }
+
+		/// <summary>
+		/// The start token for a link.
+		/// </summary>
+		string LinkStartToken { get; }
+
+		/// <summary>
+		/// The ending token for a link.
+		/// </summary>
+		string LinkEndToken { get; }
+
+		/// <summary>
+		/// The start token for an image.
+		/// </summary>
+		string ImageStartToken { get; }
+
+		/// <summary>
+		/// The end token for an image.
+		/// </summary>
+		string ImageEndToken { get; }
+
+		/// <summary>
+		/// The start token for a bulleted list item.
+		/// </summary>
+		string BulletListToken { get; }
+
+		/// <summary>
+		/// The start token for a n umbered list item.
+		/// </summary>
+		string NumberedListToken { get; }
+
+		/// <summary>
+		/// The start and end tokens for headings. H5 headings are assumed to repeat this token 5 times.
+		/// </summary>
+		string HeadingToken { get; }
 	}
 }

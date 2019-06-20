@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Roadkill.Core.Configuration;
-using Roadkill.Core.Database.Repositories;
 using Roadkill.Core.Logging;
 using Roadkill.Core.Plugins;
 
@@ -14,9 +13,7 @@ namespace Roadkill.Core.Database.Export
 	/// </summary>
 	public class SqlExportBuilder
 	{
-		private readonly ISettingsRepository _settingsRepository;
-		private readonly IUserRepository _userRepository;
-		private readonly IPageRepository _pageRepository;
+		private readonly IRepository _repository;
 		private readonly IPluginFactory _pluginFactory;
 
 		/// <summary>
@@ -38,32 +35,23 @@ namespace Roadkill.Core.Database.Export
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SqlExportBuilder"/> class.
 		/// </summary>
-		/// <param name="settingsRepository">The current repository.</param>
+		/// <param name="repository">The current repository.</param>
 		/// <param name="pluginFactory">The plugin factory.</param>
 		/// <exception cref="System.ArgumentNullException">
 		/// repository
 		/// or
 		/// pluginFactory are null.
 		/// </exception>
-		public SqlExportBuilder(ISettingsRepository settingsRepository, IUserRepository userRepository, IPageRepository pageRepository, IPluginFactory pluginFactory)
+		public SqlExportBuilder(IRepository repository, IPluginFactory pluginFactory)
 		{
-			if (settingsRepository == null)
-				throw new ArgumentNullException(nameof(settingsRepository));
-
-			if (userRepository == null)
-				throw new ArgumentNullException(nameof(userRepository));
-
-			if (pageRepository == null)
-				throw new ArgumentNullException(nameof(pageRepository));
+			if (repository == null)
+				throw new ArgumentNullException("repository");
 
 			if (pluginFactory == null)
-				throw new ArgumentNullException(nameof(pluginFactory));
+				throw new ArgumentNullException("pluginFactory");
 
-			_settingsRepository = settingsRepository;
-			_userRepository = userRepository;
-			_pageRepository = pageRepository;
+			_repository = repository;
 			_pluginFactory = pluginFactory;
-
 			IncludePages = true;
 			IncludeConfiguration = true;
 		}
@@ -76,9 +64,9 @@ namespace Roadkill.Core.Database.Export
 		{
 			try
 			{
-				IEnumerable<User> users = _userRepository.FindAllAdmins().Union(_userRepository.FindAllEditors());
-				IEnumerable<Page> pages = _pageRepository.AllPages();
-				IEnumerable<PageContent> pageContent = _pageRepository.AllPageContents();
+				IEnumerable<User> users = _repository.FindAllAdmins().Union(_repository.FindAllEditors());
+				IEnumerable<Page> pages = _repository.AllPages();
+				IEnumerable<PageContent> pageContent = _repository.AllPageContents();
 				IEnumerable<SiteConfigurationRow> configurationRows = GetSiteConfigurationRows();
 
 				// The order of the SQL is important - users should come before pages, pages before content.
@@ -149,7 +137,7 @@ namespace Roadkill.Core.Database.Export
 			List<SiteConfigurationRow> configurationRows = new List<SiteConfigurationRow>();
 			
 			// Turn the main SiteSettings into a row
-			SiteSettings settings = _settingsRepository.GetSiteSettings();
+			SiteSettings settings = _repository.GetSiteSettings();
 			SiteConfigurationRow row = new SiteConfigurationRow()
 			{
 				Id = SiteSettings.SiteSettingsId,

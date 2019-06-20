@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Roadkill.Core;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
 using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Core.Security;
+using StructureMap;
 
-namespace Roadkill.Tests.Unit.StubsAndMocks
+namespace Roadkill.Tests
 {
 	public class UserServiceMock : UserServiceBase
 	{
@@ -24,7 +26,7 @@ namespace Roadkill.Tests.Unit.StubsAndMocks
 			Users = new List<User>();
 		}
 
-		public UserServiceMock(ApplicationSettings settings, IUserRepository repository)
+		public UserServiceMock(ApplicationSettings settings, IRepository repository)
 			: base(settings, repository)
 		{
 			Users = new List<User>();
@@ -233,20 +235,6 @@ namespace Roadkill.Tests.Unit.StubsAndMocks
 		public override string GetLoggedInUserName(System.Web.HttpContextBase context)
 		{
 			return LoggedInUserId;
-		}
-
-		public override User GetLoggedInUser(string cookieValue)
-		{
-			Guid userId;
-
-			if (Guid.TryParse(cookieValue, out userId) && userId != Guid.Empty)
-			{
-				return GetUserById(userId);
-			}
-			else
-			{
-				return new User() { Username = cookieValue };
-			}
 		}
 	}
 }

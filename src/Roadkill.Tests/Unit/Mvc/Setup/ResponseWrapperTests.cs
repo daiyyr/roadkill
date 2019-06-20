@@ -1,17 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Web;
 using Moq;
 using NUnit.Framework;
 using Roadkill.Core.Attachments;
 
-namespace Roadkill.Tests.Unit.Mvc.Setup
+namespace Roadkill.Tests.Unit.Mvc
 {
 	[TestFixture]
 	[Category("Unit")]
 	public class ResponseWrapperTests
 	{
 		[Test]
-		public void getstatuscodeforcache_should_return_200_when_file_was_written_more_recently()
+		public void GetStatusCodeForCache_Should_Return_200_When_File_Was_Written_More_Recently()
 		{
 			// Arrange
 			DateTime fileLastWritten = DateTime.Today;
@@ -25,7 +29,7 @@ namespace Roadkill.Tests.Unit.Mvc.Setup
 		}
 
 		[Test]
-		public void getstatuscodeforcache_should_return_200_when_no_modified_since_header()
+		public void GetStatusCodeForCache_Should_Return_200_When_No_Modified_Since_Header()
 		{
 			// Arrange
 			DateTime fileLastWritten = DateTime.Today;
@@ -39,7 +43,7 @@ namespace Roadkill.Tests.Unit.Mvc.Setup
 		}
 
 		[Test]
-		public void getstatuscodeforcache_should_return_304_when_lastmodified_date_matches_file_last_write_date()
+		public void GetStatusCodeForCache_Should_Return_304_When_LastModified_Date_Matches_File_Last_Write_Date()
 		{
 			// Arrange
 			DateTime fileLastWritten = DateTime.Today.AddDays(-1);
@@ -53,7 +57,7 @@ namespace Roadkill.Tests.Unit.Mvc.Setup
 		}
 
 		[Test]
-		public void binarywrite_should_add_content_type()
+		public void BinaryWrite_Should_Add_Content_Type()
 		{
 			// Arrange
 			Mock<HttpResponseBase> responseMock = new Mock<HttpResponseBase>();
@@ -87,7 +91,7 @@ namespace Roadkill.Tests.Unit.Mvc.Setup
 		}
 
 		[Test]
-		public void getlastmodifieddate_should_return_valid_datetime_for_known_date_with_no_milliseconds()
+		public void GetLastModifiedDate_Should_Return_Valid_DateTime_For_Known_Date_With_No_Milliseconds()
 		{
 			// Arrange
 			string lastModifiedHeader = "Thu, 07 Nov 2013 12:32:40 GMT"; // direct from Firebug

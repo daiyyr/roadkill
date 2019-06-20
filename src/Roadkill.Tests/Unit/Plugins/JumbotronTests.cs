@@ -10,9 +10,10 @@ using Roadkill.Core;
 using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
+using Roadkill.Core.Plugins.SpecialPages.BuiltIn;
+using Roadkill.Core.Plugins.Text.BuiltIn;
 using Roadkill.Core.Security;
 using Roadkill.Core.Services;
-using Roadkill.Plugins.Text.BuiltIn;
 using Roadkill.Tests.Unit.StubsAndMocks;
 
 namespace Roadkill.Tests.Unit.Plugins
@@ -30,7 +31,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void should_remove_jumbotron_tag_from_markup()
+		public void Should_Remove_Jumbotron_Tag_From_Markup()
 		{
 			// Arrange
 			string markup = "Here is some ===Heading 1=== markup \n[[[jumbotron=\n==Welcome==\n==This the subheading==]]]";
@@ -44,7 +45,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void should_parse_and_fill_precontainerhtml()
+		public void Should_Parse_And_Fill_PreContainerHtml()
 		{
 			// Arrange
 			string markup = "Here is some ===Heading 1=== markup \n[[[jumbotron==Welcome=\n==This the subheading==]]]";

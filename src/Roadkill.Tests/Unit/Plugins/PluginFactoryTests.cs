@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using NUnit.Framework;
+using Roadkill.Core.Configuration;
 using Roadkill.Core.Plugins;
 using Roadkill.Tests.Unit.StubsAndMocks;
-using StructureMap;
 using PluginSettings = Roadkill.Core.Plugins.Settings;
 
 namespace Roadkill.Tests.Unit.Plugins
@@ -15,14 +16,8 @@ namespace Roadkill.Tests.Unit.Plugins
 	[Category("Unit")]
 	public class PluginFactoryTests
 	{
-		private static PluginFactory CreateFactory()
-		{
-			var container = new Container();
-			return new PluginFactory(container);
-		}
-
 		[Test]
-		public void copyassemblies_should_copy_all_dlls_to_pluginsbinpath()
+		public void CopyAssemblies_Should_Copy_All_Dlls_To_PluginsBinPath()
 		{
 			// Arrange
 			string sourceDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins", "Text");
@@ -44,8 +39,10 @@ namespace Roadkill.Tests.Unit.Plugins
 			if (File.Exists(plugin3Path))
 				File.Delete(plugin3Path);
 
+			PluginFactory factory = new PluginFactory();
+
 			// Act
-			PluginFileManager.CopyAssemblies(sourceDir, destDir);
+			factory.CopyAssemblies(sourceDir, destDir);
 
 			// Assert
 			Assert.That(File.Exists(plugin1Path), Is.True);
@@ -54,7 +51,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void copyassemblies_should_copy_source_dll_when_source_is_more_recent()
+		public void CopyAssemblies_Should_Copy_Source_Dll_When_Source_Is_More_Recent()
 		{
 			// Arrange
 			string pluginId = "PluginSourceMoreRecentTest";
@@ -69,8 +66,10 @@ namespace Roadkill.Tests.Unit.Plugins
 			Thread.Sleep(250); // slow the test down slightly
 			File.WriteAllText(sourcePluginPath, "file has been updated"); // update the source plugin
 
+			PluginFactory factory = new PluginFactory();
+
 			// Act
-			PluginFileManager.CopyAssemblies(sourceDir, destDir);
+			factory.CopyAssemblies(sourceDir, destDir);
 
 			// Assert
 			string fileContent = File.ReadAllText(pluginDestPath);
@@ -78,7 +77,7 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void copyassemblies_should_not_copy_source_dll_when_destination_is_more_recent()
+		public void CopyAssemblies_Should_Not_Copy_Source_Dll_When_Destination_Is_More_Recent()
 		{
 			// Arrange
 			string pluginId = "PluginDestMoreRecentTest";
@@ -93,8 +92,10 @@ namespace Roadkill.Tests.Unit.Plugins
 				Directory.CreateDirectory(pluginDestFolder);
 			File.WriteAllText(pluginDestPath, "dest file is more recent");  // create the plugin in the destination path so it's more recent
 
+			PluginFactory factory = new PluginFactory();
+
 			// Act
-			PluginFileManager.CopyAssemblies(sourceDir, destDir);
+			factory.CopyAssemblies(sourceDir, destDir);
 
 			// Assert
 			string fileContent = File.ReadAllText(pluginDestPath);
@@ -120,10 +121,10 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void gettextplugin_should_return_null_when_plugin_is_not_registered()
+		public void GetTextPlugin_Should_Return_Null_When_Plugin_Is_Not_Registered()
 		{
 			// Arrange
-			PluginFactory factory = CreateFactory();
+			PluginFactory factory = new PluginFactory();
 
 			// Act
 			TextPlugin plugin = factory.GetTextPlugin("doesntexist");
@@ -133,10 +134,10 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void registertextplugin_should_register_plugin_and_gettextplugin_should_return_plugin()
+		public void RegisterTextPlugin_Should_Register_Plugin_And_GetTextPlugin_Should_Return_Plugin()
 		{
 			// Arrange
-			PluginFactory factory = CreateFactory();
+			PluginFactory factory = new PluginFactory();
 			TextPluginStub pluginStub = new TextPluginStub("randomid", "name", "desc");
 
 			// Act
@@ -148,10 +149,10 @@ namespace Roadkill.Tests.Unit.Plugins
 		}
 
 		[Test]
-		public void gettextplugins_should_return_all_plugins()
+		public void GetTextPlugins_Should_Return_All_Plugins()
 		{
 			// Arrange
-			PluginFactory factory = CreateFactory();
+			PluginFactory factory = new PluginFactory();
 			TextPluginStub plugin1Stub = new TextPluginStub("plugin1", "name", "desc");
 			TextPluginStub plugin2Stub = new TextPluginStub("plugin2", "name", "desc");
 			factory.RegisterTextPlugin(plugin1Stub);

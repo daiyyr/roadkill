@@ -1,14 +1,25 @@
 ﻿using System;
+using System.Collections.Specialized;
 using System.Web;
+using System.Web.Mvc;
+using System.Web.Routing;
+using Moq;
+using NUnit;
 using NUnit.Framework;
 using Roadkill.Core;
+using Roadkill.Core.Mvc.Controllers;
+using MvcContrib.TestHelper;
+using Roadkill.Core.Attachments;
 using Roadkill.Core.Configuration;
-using Roadkill.Core.Database;
 using Roadkill.Core.Mvc.Attributes;
+using System.Security.Principal;
+using Roadkill.Core.Security;
 using Roadkill.Tests.Unit.StubsAndMocks;
-using Roadkill.Tests.Unit.StubsAndMocks.Mvc;
+using System.Web.Http.Controllers;
+using System.Threading;
+using Roadkill.Core.Database;
 
-namespace Roadkill.Tests.Unit.Mvc.Attributes
+namespace Roadkill.Tests.Unit
 {
 	/// <summary>
 	/// Setup-heavy tests for the AdminRequired attribute.
@@ -37,7 +48,7 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 		}
 
 		[Test]
-		public void should_return_true_if_installed_is_false()
+		public void Should_Return_True_If_Installed_Is_False()
 		{
 			// Arrange
 			_applicationSettings.Installed = false;
@@ -59,7 +70,29 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 		}
 
 		[Test]
-		public void should_return_true_if_publicsite_is_true()
+		public void Should_Return_True_If_UpgradeRequired_Is_True()
+		{
+			// Arrange
+			_applicationSettings.UpgradeRequired = true;
+
+			OptionalAuthorizationAttributeMock attribute = new OptionalAuthorizationAttributeMock();
+			attribute.AuthorizationProvider = new AuthorizationProviderMock();
+			attribute.ApplicationSettings = _applicationSettings;
+			attribute.UserService = _userService;
+
+			IdentityStub identity = new IdentityStub() { Name = Guid.NewGuid().ToString(), IsAuthenticated = true };
+			PrincipalStub principal = new PrincipalStub() { Identity = identity };
+			HttpContextBase context = GetHttpContext(principal);
+
+			// Act
+			bool isAuthorized = attribute.CallAuthorize(context);
+
+			// Assert
+			Assert.That(isAuthorized, Is.True);
+		}
+
+		[Test]
+		public void Should_Return_True_If_PublicSite_Is_True()
 		{
 			// Arrange
 			_applicationSettings.IsPublicSite = true;
@@ -81,7 +114,7 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 		}
 
 		[Test]
-		public void should_use_authorizationprovider_for_editors_when_publicsite_is_false()
+		public void Should_Use_AuthorizationProvider_For_Editors_When_PublicSite_Is_False()
 		{
 			// Arrange
 			User editorUser = CreateEditorUser();
@@ -103,7 +136,7 @@ namespace Roadkill.Tests.Unit.Mvc.Attributes
 		}
 
 		[Test]
-		public void should_use_authorizationprovider_for_admin_when_publicsite_is_false()
+		public void Should_Use_AuthorizationProvider_For_Admin_When_PublicSite_Is_False()
 		{
 			// Arrange
 			User adminUser = CreateAdminUser();

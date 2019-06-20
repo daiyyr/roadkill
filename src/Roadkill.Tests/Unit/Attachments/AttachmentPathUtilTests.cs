@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using NUnit.Framework;
 using Roadkill.Core.Attachments;
 using Roadkill.Core.Configuration;
 
-namespace Roadkill.Tests.Unit.Attachments
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -81,7 +84,7 @@ namespace Roadkill.Tests.Unit.Attachments
 		}
 
 		[Test]
-		public void isattachmentpathvalid_should_be_true_for_valid_subdirectory()
+		public void IsAttachmentPathValid_Should_Be_True_For_Valid_SubDirectory()
 		{
 			// Arrange
 			string physicalPath = Path.Combine(_settings.AttachmentsDirectoryPath, "images", "test");
@@ -96,7 +99,7 @@ namespace Roadkill.Tests.Unit.Attachments
 		}
 
 		[Test]
-		public void isattachmentpathvalid_should_be_false_for_valid_path_that_does_not_exist()
+		public void IsAttachmentPathValid_Should_Be_False_For_Valid_Path_That_Does_Not_Exist()
 		{
 			// Arrange
 			string physicalPath = Path.Combine(_settings.AttachmentsDirectoryPath, "folder100", "folder99");
@@ -110,7 +113,7 @@ namespace Roadkill.Tests.Unit.Attachments
 		}
 
 		[Test]
-		public void isattachmentpathvalid_should_be_case_insensitive()
+		public void IsAttachmentPathValid_Should_Be_Case_Insensitive()
 		{
 			// Arrange
 			string physicalPath = Path.Combine(_settings.AttachmentsDirectoryPath, "images", "test");
@@ -144,7 +147,7 @@ namespace Roadkill.Tests.Unit.Attachments
 		}
 
 		[Test]
-		public void isattachmentpathvalid_should_be_true_for_emptystring()
+		public void IsAttachmentPathValid_Should_Be_True_For_EmptyString()
 		{
 			// Arrange
 			bool expectedResult = true;
@@ -184,7 +187,7 @@ namespace Roadkill.Tests.Unit.Attachments
 		}
 
 		[Test]
-		public void attachmentfolderexistsandwriteable_should_return_empty_string_for_writeable_folder()
+		public void AttachmentFolderExistsAndWriteable_Should_Return_Empty_String_For_Writeable_Folder()
 		{
 			// Arrange
 			string directory = AppDomain.CurrentDomain.BaseDirectory;
@@ -198,7 +201,7 @@ namespace Roadkill.Tests.Unit.Attachments
 		}
 
 		[Test]
-		public void attachmentfolderexistsandwriteable_should_return_error_for_empty_folder()
+		public void AttachmentFolderExistsAndWriteable_Should_Return_Error_For_Empty_Folder()
 		{
 			// Arrange
 			string directory = "";
@@ -212,7 +215,7 @@ namespace Roadkill.Tests.Unit.Attachments
 		}
 
 		[Test]
-		public void attachmentfolderexistsandwriteable_should_return_error_for_missing_folder()
+		public void AttachmentFolderExistsAndWriteable_Should_Return_Error_For_Missing_Folder()
 		{
 			// Arrange
 			string directory = @"c:\87sd9f7dssdds3232";

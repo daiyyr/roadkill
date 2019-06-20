@@ -13,7 +13,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 	public class TestResultTests
 	{
 		[Test]
-		public void constructor_should_set_error_message_property()
+		public void Constructor_Should_Set_Error_Message_Property()
 		{
 			// Act + Arrange
 			TestResult result = new TestResult("some error");
@@ -23,7 +23,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void success_should_be_true_when_error_message_is_empty()
+		public void Success_Should_Be_True_When_Error_Message_Is_Empty()
 		{
 			// Act + Arrange
 			TestResult result = new TestResult("");

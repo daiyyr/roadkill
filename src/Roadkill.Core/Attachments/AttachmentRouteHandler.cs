@@ -1,8 +1,10 @@
-﻿using Roadkill.Core.Configuration;
-using Roadkill.Core.Services;
-using StructureMap;
-using System.Web;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Web.Routing;
+using System.Web;
+using Roadkill.Core.Configuration;
 
 namespace Roadkill.Core.Attachments
 {
@@ -11,8 +13,16 @@ namespace Roadkill.Core.Attachments
 	/// </summary>
 	public class AttachmentRouteHandler : IRouteHandler
 	{
-		private readonly ApplicationSettings _settings;
-		private readonly IFileService _fileService;
+		private ApplicationSettings _settings;
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="AttachmentRouteHandler"/> class.
+		/// </summary>
+		/// <param name="settings">The current application settings.</param>
+		public AttachmentRouteHandler(ApplicationSettings settings)
+		{
+			_settings = settings;
+		}
 
 		/// <summary>
 		/// Registers the attachments path route, using the settings given in the application settings.
@@ -24,7 +34,7 @@ namespace Roadkill.Core.Attachments
 		/// or
 		/// The attachmentsRoutePath in the config is set to 'files' which is not an allowed route path.
 		/// </exception>
-		public static void RegisterRoute(ApplicationSettings settings, RouteCollection routes, IFileService fileService)
+		public static void RegisterRoute(ApplicationSettings settings, RouteCollection routes)
 		{
 			if (string.IsNullOrEmpty(settings.AttachmentsRoutePath))
 				throw new ConfigurationException("The configuration is missing an attachments route path, please enter one using attachmentsRoutePath=\"Attachments\"", null);
@@ -32,27 +42,12 @@ namespace Roadkill.Core.Attachments
 			if (settings.AttachmentsRoutePath.ToLower() == "files")
 				throw new ConfigurationException("The attachmentsRoutePath in the config is set to 'files' which is not an allowed route path. Please change it to something else.", null);
 
-			Route route = new Route(settings.AttachmentsRoutePath + "/{*filename}", new AttachmentRouteHandler(settings, fileService));
+
+			Route route = new Route(settings.AttachmentsRoutePath + "/{*filename}", new AttachmentRouteHandler(settings));
 			route.Constraints = new RouteValueDictionary();
 			route.Constraints.Add("MvcContraint", new IgnoreMvcConstraint(settings));
 
 			routes.Add(route);
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="AttachmentRouteHandler"/> class.
-		/// </summary>
-		/// <param name="settings">The current application settings.</param>
-		public AttachmentRouteHandler(ApplicationSettings settings, IFileService fileService)
-		{
-			if (settings == null)
-				throw new IoCException("The settings parameter is null", null);
-
-			if (fileService == null)
-				throw new IoCException("The fileService parameter is null", null);
-
-			_settings = settings;
-			_fileService = fileService;
 		}
 
 		/// <summary>
@@ -64,7 +59,7 @@ namespace Roadkill.Core.Attachments
 		/// </returns>
 		public IHttpHandler GetHttpHandler(RequestContext requestContext)
 		{
-			return new AttachmentFileHandler(_settings, _fileService);
+			return new AttachmentFileHandler(_settings);
 		}
 
 		/// <summary>

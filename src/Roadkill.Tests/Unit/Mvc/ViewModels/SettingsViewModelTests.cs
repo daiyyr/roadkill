@@ -2,20 +2,22 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using NUnit.Framework;
 using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
 using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Plugins;
 using Roadkill.Tests.Unit.StubsAndMocks;
 
-namespace Roadkill.Tests.Unit.Mvc.ViewModels
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
 	public class SettingsViewModelTests
 	{
 		[Test]
-		public void constructor_should_convert_applicationsettings_and_sitesettings_to_properties()
+		public void Constructor_Should_Convert_ApplicationSettings_And_SiteSettings_To_Properties()
 		{
 			// Arrange
 			ApplicationSettings appSettings = new ApplicationSettings()
@@ -25,7 +27,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 				UseObjectCache = true,
 				UseBrowserCache = true,
 				ConnectionString = "connection string",
-				DatabaseName = "SqlServer2008",
+				DataStoreType = DataStoreType.SqlServer2008,
 				EditorRoleName = "editor role name",
 				LdapConnectionString = "ldap connection string",
 				LdapUsername = "ldap username",
@@ -59,7 +61,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 			Assert.That(model.UseObjectCache, Is.EqualTo(appSettings.UseObjectCache));
 			Assert.That(model.UseBrowserCache, Is.EqualTo(appSettings.UseBrowserCache));
 			Assert.That(model.ConnectionString, Is.EqualTo(appSettings.ConnectionString));
-			Assert.That(model.DatabaseName, Is.EqualTo(appSettings.DatabaseName));
+			Assert.That(model.DataStoreTypeName, Is.EqualTo(appSettings.DataStoreType.Name));
 			Assert.That(model.EditorRoleName, Is.EqualTo(appSettings.EditorRoleName));
 			Assert.That(model.LdapConnectionString, Is.EqualTo(appSettings.LdapConnectionString));
 			Assert.That(model.LdapUsername, Is.EqualTo(appSettings.LdapUsername));
@@ -81,7 +83,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void constructor_should_remove_spaces_from_sitesettings_allow_file_types()
+		public void Constructor_Should_Remove_Spaces_From_SiteSettings_Allow_File_Types()
 		{
 			// Arrange
 			ApplicationSettings appSettings = new ApplicationSettings();
@@ -99,7 +101,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void fillfromapplicationsettings_should_convert_applicationsettings_to_properties()
+		public void FillFromApplicationSettings_Should_Convert_ApplicationSettings_To_Properties()
 		{
 			// Arrange
 			ApplicationSettings appSettings = new ApplicationSettings()
@@ -109,7 +111,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 				UseObjectCache = true,
 				UseBrowserCache = true,
 				ConnectionString = "connection string",
-				DatabaseName = "SqlServer2008",
+				DataStoreType = DataStoreType.SqlServer2008,
 				EditorRoleName = "editor role name",
 				LdapConnectionString = "ldap connection string",
 				LdapUsername = "ldap username",
@@ -129,7 +131,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 			Assert.That(model.UseObjectCache, Is.EqualTo(appSettings.UseObjectCache));
 			Assert.That(model.UseBrowserCache, Is.EqualTo(appSettings.UseBrowserCache));
 			Assert.That(model.ConnectionString, Is.EqualTo(appSettings.ConnectionString));
-			Assert.That(model.DatabaseName, Is.EqualTo(appSettings.DatabaseName));
+			Assert.That(model.DataStoreTypeName, Is.EqualTo(appSettings.DataStoreType.Name));
 			Assert.That(model.EditorRoleName, Is.EqualTo(appSettings.EditorRoleName));
 			Assert.That(model.LdapConnectionString, Is.EqualTo(appSettings.LdapConnectionString));
 			Assert.That(model.LdapUsername, Is.EqualTo(appSettings.LdapUsername));
@@ -140,27 +142,21 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void setsupporteddatabases_should_convert_repositoryinfo_objects_selectlist()
+		public void DatabaseTypesAvailable_Should_Equal_DataStoreTypes()
 		{
 			// Arrange
-			var respositoryFactory = new RepositoryFactoryMock();
-			List<RepositoryInfo> repositoryInfos = respositoryFactory.ListAll().ToList();
-            SettingsViewModel model = new SettingsViewModel();
+			SettingsViewModel model = new SettingsViewModel();
+			int expectedCount = DataStoreType.AllTypes.Count();
 
 			// Act
-			model.SetSupportedDatabases(repositoryInfos);
+			int actualCount = model.DatabaseTypesAvailable.Count();
 
 			// Assert
-			Assert.That(model.DatabaseTypesAsSelectList.Count, Is.EqualTo(repositoryInfos.Count()));
-
-			var firstItem = repositoryInfos[0];
-
-			Assert.That(model.DatabaseTypesAsSelectList[0].Value, Is.EqualTo(firstItem.Id));
-			Assert.That(model.DatabaseTypesAsSelectList[0].Text, Is.EqualTo(firstItem.Description));
+			Assert.That(actualCount, Is.EqualTo(expectedCount));
 		}
 
 		[Test]
-		public void markuptypesavailable_should_contain_known_markups()
+		public void MarkupTypesAvailable_Should_Contain_Known_Markups()
 		{
 			// Arrange
 			SettingsViewModel model = new SettingsViewModel();
@@ -172,7 +168,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void version_should_equal_applicationsettingsproductversion()
+		public void Version_Should_Equal_ApplicationSettingsProductVersion()
 		{
 			// Arrange
 			SettingsViewModel model = new SettingsViewModel();
@@ -182,7 +178,7 @@ namespace Roadkill.Tests.Unit.Mvc.ViewModels
 		}
 
 		[Test]
-		public void themesavailable_should_scan_themes_directory()
+		public void ThemesAvailable_Should_Scan_Themes_Directory()
 		{
 			// Arrange
 			string themeDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Themes");

@@ -1,16 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Caching;
+using System.Text;
+using System.Web.Mvc;
 using System.Web;
 using System.Text.RegularExpressions;
-using Ganss.XSS;
+using HtmlAgilityPack;
 using Roadkill.Core.Configuration;
+using StructureMap;
+using System.IO;
+using Roadkill.Core.Attachments;
 using Roadkill.Core.Text.Sanitizer;
 using Roadkill.Core.Database;
-using Roadkill.Core.Database.Repositories;
 using Roadkill.Core.Text;
+using Roadkill.Core.Plugins.Text.BuiltIn.ToC;
 using Roadkill.Core.Logging;
+using Roadkill.Core.Plugins.Text.BuiltIn;
 using Roadkill.Core.Plugins;
 
 namespace Roadkill.Core.Converters
@@ -24,8 +29,7 @@ namespace Roadkill.Core.Converters
 		private static Regex _anchorRegex = new Regex("(?<hash>(#|%23).+)", RegexOptions.IgnoreCase);
 
 		private ApplicationSettings _applicationSettings;
-		private ISettingsRepository _settingsRepository;
-		private readonly IPageRepository _pageRepository;
+		private IRepository _repository;
 		private IMarkupParser _parser;
 		private List<string> _externalLinkPrefixes;
 		private IPluginFactory _pluginFactory;
@@ -49,7 +53,7 @@ namespace Roadkill.Core.Converters
 		/// markdown format parsers.
 		/// </summary>
 		/// <returns>An <see cref="IMarkupParser"/> for Creole,Markdown or Media wiki formats.</returns>
-		public MarkupConverter(ApplicationSettings settings, ISettingsRepository settingsRepository, IPageRepository pageRepository,  IPluginFactory pluginFactory)
+		public MarkupConverter(ApplicationSettings settings, IRepository repository, IPluginFactory pluginFactory)
 		{
 			_externalLinkPrefixes = new List<string>()
 			{
@@ -62,8 +66,7 @@ namespace Roadkill.Core.Converters
 			};
 
 			_pluginFactory = pluginFactory;
-			_settingsRepository = settingsRepository;
-			_pageRepository = pageRepository;
+			_repository = repository;
 			_applicationSettings = settings;
 
 			// Create the UrlResolver for all wiki urls
@@ -73,10 +76,14 @@ namespace Roadkill.Core.Converters
 
 			UrlResolver = new UrlResolver(httpContext);		
 	
-			if (!_applicationSettings.Installed)
+			if (!_applicationSettings.Installed || _applicationSettings.UpgradeRequired)
 			{
-				// Skip the chain of creation, as the markup converter isn't needed but is created by
-				// StructureMap - this is required for installation
+				string warnMessage = "Roadkill is not installed, or an upgrade is pending (ApplicationSettings.UpgradeRequired = false)." +
+									"Skipping initialization of MarkupConverter (MarkupConverter.Parser will now be null)";
+
+				Log.Warn(warnMessage);
+
+				// Skip the chain of creation, as the markup converter isn't needed
 				return;
 			}
 
@@ -86,7 +93,7 @@ namespace Roadkill.Core.Converters
 		private void CreateParserForMarkupType()
 		{
 			string markupType = "";
-			SiteSettings siteSettings = _settingsRepository.GetSiteSettings();
+			SiteSettings siteSettings = _repository.GetSiteSettings();
 			if (siteSettings != null && !string.IsNullOrEmpty(siteSettings.MarkupType))
 			{
 				markupType = siteSettings.MarkupType.ToLower();
@@ -94,17 +101,17 @@ namespace Roadkill.Core.Converters
 
 			switch (markupType)
 			{
-				case "creole":
-					_parser = new CreoleParser(_applicationSettings, siteSettings);
+				case "markdown":
+					_parser = new MarkdownParser();
 					break;
 
 				case "mediawiki":
-					throw new NotImplementedException("Sorry, Mediawiki markup is no longer supported.");
+					_parser = new MediaWikiParser(_applicationSettings, siteSettings);
 					break;
 
-				case "markdown":
-					default:
-					_parser = new MarkdownParser();
+				case "creole":
+				default:
+					_parser = new CreoleParser(_applicationSettings, siteSettings);
 					break;
 			}
 
@@ -179,9 +186,6 @@ namespace Roadkill.Core.Converters
 		{
 			if (!_externalLinkPrefixes.Any(x => e.OriginalHref.StartsWith(x)))
 			{
-				e.IsInternalLink = true;
-
-				// Parse internal links, including attachments, tag: and special: links
 				string href = e.OriginalHref;
 				string lowerHref = href.ToLower();
 
@@ -200,10 +204,7 @@ namespace Roadkill.Core.Converters
 			}
 			else
 			{
-				// Add the external-link class to all outward bound links, 
-				// except for anchors pointing to <a name=""> tags on the current page.
-				if (!e.OriginalHref.StartsWith("#"))
-					e.CssClass = "external-link";
+				e.CssClass = "external-link";
 			}
 		}
 
@@ -272,7 +273,7 @@ namespace Roadkill.Core.Converters
 			}
 
 			// Find the page, or if it doesn't exist point to the new page url
-			Page page = _pageRepository.GetPageByTitle(title);
+			Page page = _repository.GetPageByTitle(title);
 			if (page != null)
 			{
 				href = UrlResolver.GetInternalUrlForTitle(page.Id, page.Title);
@@ -295,64 +296,13 @@ namespace Roadkill.Core.Converters
 		{
 			if (_applicationSettings.UseHtmlWhiteList)
 			{
-				HtmlWhiteList htmlWhiteList = GetCachedWhiteList();
-				string[] allowedTags = htmlWhiteList.ElementWhiteList.Select(x => x.Name).ToArray();
-				string[] allowedAttributes = htmlWhiteList.ElementWhiteList.SelectMany(x => x.AllowedAttributes.Select(y => y.Name)).ToArray();
-
-				if (allowedTags.Length == 0)
-					allowedTags = null;
-
-				if (allowedAttributes.Length == 0)
-					allowedAttributes = null;
-
-				var sanitizer = new HtmlSanitizer(allowedTags, null, allowedAttributes);
-				sanitizer.AllowDataAttributes = false;
-				sanitizer.AllowedAttributes.Add("class");
-				sanitizer.AllowedAttributes.Add("id");
-				sanitizer.AllowedSchemes.Add("mailto");
-				sanitizer.RemovingAttribute += Sanitizer_RemovingAttribute;
-
-				return sanitizer.Sanitize(html);
+				MarkupSanitizer sanitizer = new MarkupSanitizer(_applicationSettings, true, false, true);
+				return sanitizer.SanitizeHtml(html);
 			}
 			else
 			{
 				return html;
 			}
-		}
-
-		private void Sanitizer_RemovingAttribute(object sender, RemovingAttributeEventArgs e)
-		{
-			// Don't clean /wiki/Special:Tag urls in href="" attributes
-			if (e.Attribute.Name.ToLower() == "href" && e.Attribute.Value.Contains("Special:"))
-			{
-				e.Cancel = true;
-			}
-		}
-
-		private string _cacheKey = "whitelist";
-		internal static MemoryCache _memoryCache = new MemoryCache("MarkupSanitizer");
-
-		/// <summary>
-		/// Changes the key name used for the cache'd version of the HtmlWhiteList object.
-		/// </summary>
-		/// <param name="key"></param>
-		public void SetWhiteListCacheKey(string key)
-		{
-			_memoryCache.Remove(_cacheKey);
-			_cacheKey = key;
-		}
-
-		private HtmlWhiteList GetCachedWhiteList()
-		{
-			HtmlWhiteList whiteList = _memoryCache.Get(_cacheKey) as HtmlWhiteList;
-
-			if (whiteList == null)
-			{
-				whiteList = HtmlWhiteList.Deserialize(_applicationSettings);
-				_memoryCache.Add(_cacheKey, whiteList, new CacheItemPolicy());
-			}
-
-			return whiteList;
 		}
 	}
 }

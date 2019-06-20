@@ -15,7 +15,7 @@ namespace Roadkill.Core.Mvc.Controllers
 
         public override void RegisterArea(AreaRegistrationContext context)
         {
-			// "/Settings" (used by the view routing as the controller is called Settings)
+			// "/Settings" (legacy)
 			context.MapRoute(
 				"SiteSettings_Default",
 				"Settings",

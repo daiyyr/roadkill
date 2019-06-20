@@ -1,8 +1,7 @@
 @inherits RoadkillLayoutPage
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title>@ViewBag.Title</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	@Html.Partial("HeadContent")
@@ -61,10 +60,12 @@
 			<div class="container">
 				<div class="row">
 					<div class="col-md-11">
-						<h6 id="powered-by">@SiteStrings.Shared_PoweredBy (@ApplicationSettings.ProductVersion).</h6>
+						<h6 style="display:none" id="powered-by">@SiteStrings.Shared_PoweredBy (@ApplicationSettings.ProductVersion).</h6>
 						<h6>
 							@RenderSection("PageDetailsFooter", false)
-							@RenderSection("ViewHistoryLink", false)
+                            <div style="display:none">
+							    @RenderSection("ViewHistoryLink", false)
+                            </div>
 						</h6>
 					</div>
 					<div id="top-link" class="col-md-1">

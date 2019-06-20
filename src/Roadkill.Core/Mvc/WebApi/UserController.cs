@@ -2,21 +2,50 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
+using Roadkill.Core.Configuration;
 using Roadkill.Core.Database;
+using Roadkill.Core.Mvc.Attributes;
 using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Core.Security;
 
-namespace Roadkill.Core.Mvc.WebApi
+namespace Roadkill.Core.Mvc.Controllers.Api
 {
+	[WebApiAdminRequired]
 	[RoutePrefix("api/user")]
-	[ApiKeyAuthorize]
-	public class UserController : ApiController
+	public class UserController : ApiControllerBase
 	{
-		private readonly UserServiceBase _userService;
-
-		public UserController(UserServiceBase userService)
+		public UserController(ApplicationSettings appSettings, UserServiceBase userService, IUserContext userContext)
+			: base(appSettings, userService, userContext)
 		{
-			_userService = userService;
+		}
+
+		/// <summary>
+		/// Logs a user, assigning a cookie in the resulting headers which can then be 
+		/// used for further API requests.
+		/// </summary>
+		/// <param name="user">The user's email and password</param>
+		/// <returns>True if the authentication request was successful, false otherwise.</returns>
+		[HttpPost]
+		[Route("authenticate")]
+		[Route("~/api/Authenticate")]
+		[AllowAnonymous]
+		public bool Authenticate(UserInfo user)
+		{
+			return UserService.Authenticate(user.Email, user.Password);
+		}
+
+		/// <summary>
+		/// Logouts out the current user session, clearing the login cookie.
+		/// </summary>
+		/// <returns>"OK" if the logout call was successful.</returns>
+		[HttpGet]
+		[Route("Logout")]
+		[Route("~/api/Logout")]
+		[AllowAnonymous]
+		public string Logout()
+		{
+			UserService.Logout();
+			return "OK";
 		}
 
 		/// <summary>
@@ -27,7 +56,7 @@ namespace Roadkill.Core.Mvc.WebApi
 		[HttpGet]
 		public UserViewModel Get(Guid id)
 		{
-			User user = _userService.GetUserById(id);
+			User user = UserService.GetUserById(id);
 			if (user == null)
 				return null;
 
@@ -41,7 +70,7 @@ namespace Roadkill.Core.Mvc.WebApi
 		[HttpGet]
 		public IEnumerable<UserViewModel> Get()
 		{
-			return _userService.ListAdmins().Union(_userService.ListEditors());
+			return UserService.ListAdmins().Union(UserService.ListEditors());
 		}
 
 		/// <summary>

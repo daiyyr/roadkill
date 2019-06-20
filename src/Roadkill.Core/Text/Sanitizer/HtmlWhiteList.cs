@@ -19,7 +19,7 @@ namespace Roadkill.Core.Text.Sanitizer
 			{
 				if (!string.IsNullOrEmpty(settings.HtmlElementWhiteListPath))
 					Log.Warn("The custom HTML white list tokens file does not exist in path '{0}' - using Default white list.", settings.HtmlElementWhiteListPath);
-
+				
 				return CreateDefaultWhiteList();
 			}
 
@@ -72,12 +72,12 @@ namespace Roadkill.Core.Text.Sanitizer
 			tagList.Add(new HtmlElement("font", new string[] { "style", "color", "face", "size" }));
 			tagList.Add(new HtmlElement("blockquote", new string[] { "style", "dir" }));
 			tagList.Add(new HtmlElement("hr", new string[] { "size", "width" }));
-			tagList.Add(new HtmlElement("img", new string[] { "src", "width", "height" }));
+			tagList.Add(new HtmlElement("img", new string[] { "src" }));
 			tagList.Add(new HtmlElement("div", new string[] { "style", "align", "class" }));
 			tagList.Add(new HtmlElement("span", new string[] { "style", "class" }));
 			tagList.Add(new HtmlElement("br", new string[] { "style" }));
 			tagList.Add(new HtmlElement("center", new string[] { "style" }));
-			tagList.Add(new HtmlElement("a", new string[] { "rel", "class", "href" }));
+			tagList.Add(new HtmlElement("a", new string[] { "href" }));
 			tagList.Add(new HtmlElement("pre", new string[] { "id", "class" }));
 			tagList.Add(new HtmlElement("code", new string[] { "id", "class" }));
 

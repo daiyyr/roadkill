@@ -1,17 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Web.Mvc;
+using Moq;
 using NUnit.Framework;
 using Roadkill.Core;
+using Roadkill.Core.Cache;
 using Roadkill.Core.Configuration;
-using Roadkill.Core.Database;
 using Roadkill.Core.Mvc.Controllers;
-using Roadkill.Core.Mvc.ViewModels;
+using Roadkill.Core.Converters;
+using Roadkill.Core.Database;
+using Roadkill.Core.Localization;
 using Roadkill.Core.Services;
+using Roadkill.Core.Security;
+using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Tests.Unit.StubsAndMocks;
+using System;
+using System.Collections.Generic;
+using System.Runtime.Caching;
+using Roadkill.Core.Import;
 
-namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
+namespace Roadkill.Tests.Unit
 {
 	[TestFixture]
 	[Category("Unit")]
@@ -21,11 +28,17 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 
 		private ApplicationSettings _applicationSettings;
 		private IUserContext _context;
-		private PageRepositoryMock _pageRepository;
-		private UserRepositoryMock _userRepository;
-
+		private RepositoryMock _repository;
 		private UserServiceMock _userService;
+		private PageService _pageService;
+		private IWikiImporter _wikiImporter;
+		private PluginFactoryMock _pluginFactory;
+		private SearchService _searchService;
 		private SettingsService _settingsService;
+		private PageViewModelCache _pageCache;
+		private ListCache _listCache;
+		private SiteCache _siteCache;
+		private MemoryCache _cache;
 
 		private UserManagementController _controller;
 
@@ -36,18 +49,25 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 
 			_applicationSettings = _container.ApplicationSettings;
 			_context = _container.UserContext;
-
-			_pageRepository = _container.PageRepository;
-			_userRepository = _container.UserRepository;
-
+			_repository = _container.Repository;
 			_settingsService = _container.SettingsService;
 			_userService = _container.UserService;
+			_pageCache = _container.PageViewModelCache;
+			_listCache = _container.ListCache;
+			_siteCache = _container.SiteCache;
+			_cache = _container.MemoryCache;
 
-			_controller = new UserManagementController(_applicationSettings, _userService, _settingsService, _context);
+			_pageService = _container.PageService;
+			_wikiImporter = new ScrewTurnImporter(_applicationSettings, _repository);
+			_pluginFactory = _container.PluginFactory;
+			_searchService = _container.SearchService;
+
+			_controller = new UserManagementController(_applicationSettings, _userService, _settingsService, _pageService, 
+				_searchService, _context, _listCache, _pageCache, _siteCache, _wikiImporter, _repository, _pluginFactory);
 		}
 
 		[Test]
-		public void addadmin_get_should_return_view_and_viewmodel()
+		public void AddAdmin_GET_Should_Return_View_And_ViewModel()
 		{
 			// Arrange
 
@@ -61,7 +81,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void addadmin_post_should_add_admin_and_redirect_to_index()
+		public void AddAdmin_POST_Should_Add_Admin_And_Redirect_To_Index()
 		{
 			// Arrange
 			UserViewModel model = new UserViewModel();
@@ -76,7 +96,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void addadmin_post_should_return_viewresult_when_modelstate_is_invalid()
+		public void AddAdmin_POST_Should_Return_ViewResult_When_ModelState_Is_Invalid()
 		{
 			// Arrange
 			UserViewModel model = new UserViewModel();
@@ -92,7 +112,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void addeditor_get_should_return_view_and_viewmodel()
+		public void AddEditor_GET_Should_Return_View_And_ViewModel()
 		{
 			// Arrange
 
@@ -106,7 +126,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void addeditor_post_should_add_admin_and_redirect_to_index()
+		public void AddEditor_POST_Should_Add_Admin_And_Redirect_To_Index()
 		{
 			// Arrange
 			UserViewModel model = new UserViewModel();
@@ -121,7 +141,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void addeditor_post_should_return_viewresult_when_modelstate_is_invalid()
+		public void AddEditor_POST_Should_Return_ViewResult_When_ModelState_Is_Invalid()
 		{
 			// Arrange
 			UserViewModel model = new UserViewModel();
@@ -137,7 +157,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void deleteuser_should_remove_user_and_redirect_to_index()
+		public void DeleteUser_Should_Remove_User_And_Redirect_To_Index()
 		{
 			// Arrange
 			User user = new User() { Id = Guid.NewGuid(), Email="blah@localhost", IsActivated = true };
@@ -153,7 +173,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void edituser_get_should_return_view_and_viewmodel()
+		public void EditUser_GET_Should_Return_View_And_ViewModel()
 		{
 			// Arrange
 			User user = new User() { Id = Guid.NewGuid(), IsActivated = true };
@@ -170,7 +190,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void edituser_get_should_redirect_when_user_does_not_exist()
+		public void EditUser_GET_Should_Redirect_When_User_Does_Not_Exist()
 		{
 			// Arrange
 
@@ -183,7 +203,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void edituser_post_should_update_user_when_username_and_email_changes_and_redirect_to_index()
+		public void EditUser_POST_Should_Update_User_When_Username_And_Email_Changes_And_Redirect_To_Index()
 		{
 			// Arrange
 			User user = new User()
@@ -219,7 +239,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void edituser_post_should_update_password_when_password_is_not_empty_and_redirect_to_index()
+		public void EditUser_POST_Should_Update_Password_When_Password_Is_Not_Empty_And_Redirect_To_Index()
 		{
 			// Arrange
 			User user = new User()
@@ -249,7 +269,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void edituser_post_should_return_viewresult_when_modelstate_is_invalid()
+		public void EditUser_POST_Should_Return_ViewResult_When_ModelState_Is_Invalid()
 		{
 			// Arrange
 			UserViewModel model = new UserViewModel();
@@ -265,7 +285,7 @@ namespace Roadkill.Tests.Unit.Mvc.Controllers.Admin
 		}
 
 		[Test]
-		public void index_should_return_view_and_viewmodel_with_both_user_types()
+		public void Index_Should_Return_View_And_ViewModel_With_Both_User_Types()
 		{
 			// Arrange
 			User admin = new User() { Id = Guid.NewGuid() };
