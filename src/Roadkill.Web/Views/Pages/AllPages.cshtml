@@ -34,9 +34,10 @@
 			<tr>
 				<td class="pagename stretch">@Html.ActionLink(pageModel.Title, "Index", "Wiki", new { id = pageModel.Id, title = pageModel.EncodedTitle }, null)</td>
 			@if (RoadkillContext.IsLoggedIn)
-			{
-				if (!pageModel.IsLocked || (pageModel.IsLocked && RoadkillContext.IsAdmin))
-				{
+            {
+                //if (!pageModel.IsLocked || (pageModel.IsLocked && RoadkillContext.IsAdmin))
+                if (RoadkillContext.IsAdmin)
+                {
 				<td class="edit">@Html.ActionLink(SiteStrings.Shared_EditLink, "Edit", new { id = pageModel.Id }, new { @class = "btn btn-mini btn-primary" })</td>
 				}
 				if (RoadkillContext.IsAdmin)
