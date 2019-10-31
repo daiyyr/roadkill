@@ -7,7 +7,7 @@ var Roadkill;
             function EditPage(tags) {
                 this._timeout = null;
                 this._tagBlackList = [
-                    "#", ",", ";", "/", "?", ":", "@", "&", "=", "{", "}", "|", "\\", "^", "[", "]", "`"
+                    ",", ";", "/", "?", ":", "@", "&", "=", "{", "}", "|", "\\", "^", "[", "]", "`"
                 ];
                 // Setup tagmanager
                 this.initializeTagManager(tags);

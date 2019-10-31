@@ -20,7 +20,7 @@ namespace Roadkill.Core.Mvc.ViewModels
 	{
 		private static string[] _tagBlackList = 
 		{
-			"#", ";", "/", "?", ":", "@", "&", "=", "{", "}", "|", "\\", "^", "[", "]", "`"		
+			";", "/", "?", ":", "@", "&", "=", "{", "}", "|", "\\", "^", "[", "]", "`"		
 		};
 
 		private List<string> _tags;

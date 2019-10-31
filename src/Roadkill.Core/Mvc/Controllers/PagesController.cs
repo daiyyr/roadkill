@@ -12,6 +12,11 @@ using Roadkill.Core.Mvc.ViewModels;
 using System.Web;
 using Roadkill.Core.Text;
 using Roadkill.Core.Extensions;
+using System.Net;
+using System.Net.Cache;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
+using System.Text;
 
 namespace Roadkill.Core.Mvc.Controllers
 {
@@ -45,7 +50,32 @@ namespace Roadkill.Core.Mvc.Controllers
 		[BrowserCache]
 		public ActionResult AllPages()
 		{
-			return View(_pageService.AllPages());
+
+            if (!Context.IsAdmin)
+            //if (false)
+            {
+                string key = Request.QueryString["key"];
+                string SMSUser = Request.QueryString["SMSUser"];
+                string category = Request.QueryString["category"];
+                DateTime localTime = GetLocalTimeFromGoogle();
+                DateTime UTCTime = TimeZoneInfo.ConvertTimeToUtc(localTime, TimeZoneInfo.Local);
+                var bytes = Encoding.Default.GetBytes(
+                    "LoginAs"
+                    + SMSUser
+                    + "At"
+                    + UTCTime.ToUniversalTime().ToString("yyyyMMddHHmm")
+                    + category
+                    );
+                var Md5 = new MD5CryptoServiceProvider().ComputeHash(bytes);
+                string clean_md5 = Regex.Replace(Convert.ToBase64String(Md5), @"[^a-zA-Z0-9]", "")
+                    .ToLower();//always get QueryString as lower letter for unknown reason
+                if (key != clean_md5)
+                {
+                    throw new HttpException(404, "Your key is expired. Please visit this page from Uxtrata Core again");
+                }
+            }
+
+                return View(_pageService.AllPages());
 		}
 
 		/// <summary>
@@ -55,7 +85,31 @@ namespace Roadkill.Core.Mvc.Controllers
 		[BrowserCache]
 		public ActionResult AllTags()
 		{
-			return View(_pageService.AllTags().OrderBy(x => x.Name));
+            //if (!Context.IsAdmin)
+            if(false)
+            {
+                string key = Request.QueryString["key"];
+                string SMSUser = Request.QueryString["SMSUser"];
+                string category = Request.QueryString["category"];
+                DateTime localTime = GetLocalTimeFromGoogle();
+                DateTime UTCTime = TimeZoneInfo.ConvertTimeToUtc(localTime, TimeZoneInfo.Local);
+                var bytes = Encoding.Default.GetBytes(
+                    "LoginAs"
+                    + SMSUser
+                    + "At"
+                    + UTCTime.ToUniversalTime().ToString("yyyyMMddHHmm")
+                    + category
+                    );
+                var Md5 = new MD5CryptoServiceProvider().ComputeHash(bytes);
+                string clean_md5 = Regex.Replace(Convert.ToBase64String(Md5), @"[^a-zA-Z0-9]", "")
+                    .ToLower();//always get QueryString as lower letter for unknown reason
+                if (key != clean_md5)
+                {
+                    throw new HttpException(404, "Your key is expired. Please visit this page from Uxtrata Core again");
+                }
+            }
+
+            return View(_pageService.AllTags().OrderBy(x => x.Name));
 		}
 
 		/// <summary>
@@ -255,19 +309,62 @@ namespace Roadkill.Core.Mvc.Controllers
 		/// <returns>An <see cref="IEnumerable{PageViewModel}"/> as the model.</returns>
 		public ActionResult Tag(string id)
 		{
-			id = HttpUtility.UrlDecode(id);
-			ViewData["Tagname"] = id;
+            //if (!Context.IsAdmin)
+            if(false)
+            {
+                string key = Request.QueryString["key"];
+                string SMSUser = Request.QueryString["SMSUser"];
+                string category = Request.QueryString["category"];
+                DateTime localTime = GetLocalTimeFromGoogle();
+                DateTime UTCTime = TimeZoneInfo.ConvertTimeToUtc(localTime, TimeZoneInfo.Local);
+                var bytes = Encoding.Default.GetBytes(
+                    "LoginAs"
+                    + SMSUser
+                    + "At"
+                    + UTCTime.ToUniversalTime().ToString("yyyyMMddHHmm")
+                    + category
+                    );
+                var Md5 = new MD5CryptoServiceProvider().ComputeHash(bytes);
+                string clean_md5 = Regex.Replace(Convert.ToBase64String(Md5), @"[^a-zA-Z0-9]", "")
+                    .ToLower();//always get QueryString as lower letter for unknown reason
+                if (key != clean_md5)
+                {
+                    throw new HttpException(404, "Your key is expired. Please visit this page from Uxtrata Core again");
+                }
+            }
 
+            id = HttpUtility.UrlDecode(id);
+			ViewData["Tagname"] = id;
 			return View(_pageService.FindByTag(id));
 		}
 
-		/// <summary>
-		/// Gets a particular version of a page.
-		/// </summary>
-		/// <param name="id">The Guid ID for the version.</param>
-		/// <returns>A <see cref="PageViewModel"/> as the model, which contains the HTML diff
-		/// output inside the <see cref="PageViewModel.Content"/> property.</returns>
-		public ActionResult Version(Guid id)
+
+        public static DateTime GetLocalTimeFromGoogle()
+        {
+            DateTime dateTime = DateTime.MinValue;
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://www.google.com/");
+            request.Method = "GET";
+            request.Accept = "text/html, application/xhtml+xml, */*";
+            request.UserAgent = "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore); //No caching
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                DateTime.TryParse(response.GetResponseHeader("DATE"), out dateTime);
+            }
+            return dateTime;
+        }
+
+
+        /// <summary>
+        /// Gets a particular version of a page.
+        /// </summary>
+        /// <param name="id">The Guid ID for the version.</param>
+        /// <returns>A <see cref="PageViewModel"/> as the model, which contains the HTML diff
+        /// output inside the <see cref="PageViewModel.Content"/> property.</returns>
+        public ActionResult Version(Guid id)
 		{
 			MarkupConverter converter = _pageService.GetMarkupConverter();
 			IList<PageViewModel> bothVersions = _historyService.CompareVersions(id).ToList();

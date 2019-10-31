@@ -30,11 +30,13 @@ namespace Roadkill.Core.Services
 		protected virtual string IndexPath { get; set; }
 		private IPluginFactory _pluginFactory;
 		private static readonly LuceneVersion LUCENEVERSION = LuceneVersion.LUCENE_29;
+        private IUserContext _context;
 
-		public SearchService(ApplicationSettings settings, IRepository repository, IPluginFactory pluginFactory)
+        public SearchService(ApplicationSettings settings, IRepository repository, IPluginFactory pluginFactory, IUserContext context)
 			: base(settings, repository)
 		{
-			_markupConverter = new MarkupConverter(settings, repository, pluginFactory);
+            _context = context;
+            _markupConverter = new MarkupConverter(settings, repository, pluginFactory);
 			IndexPath = settings.SearchIndexPath;
 		}
 
@@ -81,7 +83,8 @@ namespace Roadkill.Core.Services
 						foreach (ScoreDoc scoreDoc in topDocs.ScoreDocs)
 						{
 							Document document = searcher.Doc(scoreDoc.Doc);
-							list.Add(new SearchResultViewModel(document, scoreDoc));
+                            
+                            list.Add(new SearchResultViewModel(document, scoreDoc));
 						}
 					}
 				}
@@ -95,6 +98,38 @@ namespace Roadkill.Core.Services
 					throw new SearchException(ex, "An error occured while searching the index, try rebuilding the search index via the admin tools to fix this.");
 				}
 			}
+
+            if (!_context.IsAdmin)
+            {
+                List<int> toBeRemove = new List<int>();
+                foreach (var page in list)
+                {
+                    bool restrict_page = false;
+                    bool user_have_access = false;
+                    foreach (var tag1 in page.Tags.Split(' '))
+                    {
+                        if (tag1.StartsWith("#"))
+                        {
+                            restrict_page = true;
+                            if (tag1.Replace("#", "").ToLower() == _context.CurrentUsername.ToLower())
+                            {
+                                user_have_access = true;
+                            }
+                        }
+                    }
+                    if (restrict_page && !user_have_access)
+                    {
+                        toBeRemove.Add(page.Id);
+                    }
+                }
+                foreach (int i in toBeRemove)
+                {
+                    list = list.Where(p => p.Id != i).ToList();
+                }
+
+                
+            }
+
 
 			return list;
 		}

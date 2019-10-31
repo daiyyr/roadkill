@@ -7,6 +7,11 @@ using Roadkill.Core.Services;
 using Roadkill.Core.Mvc.Attributes;
 using Roadkill.Core.Mvc.ViewModels;
 using Roadkill.Core.Security;
+using System.Text;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
+using System.Net;
+using System.Net.Cache;
 
 namespace Roadkill.Core.Mvc.Controllers
 {
@@ -35,11 +40,60 @@ namespace Roadkill.Core.Mvc.Controllers
 		/// <exception cref="HttpNotFoundResult">Thrown if the page with the id cannot be found.</exception>
 		[BrowserCache]
 		public ActionResult Index(int? id, string title)
-		{
-			if (id == null || id < 1)
+        {
+            if (id >= 7104 * 7104)
+            {
+                id = (id + 7104) / 7104 - 7104;
+            }
+            else if(!Context.IsAdmin)
+            {
+                string key = Request.QueryString["key"];
+                string SMSUser = Request.QueryString["SMSUser"];
+                string category = Request.QueryString["category"];
+                DateTime localTime = GetLocalTimeFromGoogle();
+                DateTime UTCTime = TimeZoneInfo.ConvertTimeToUtc(localTime, TimeZoneInfo.Local);
+                var bytes = Encoding.Default.GetBytes(
+                    "LoginAs"
+                    + SMSUser
+                    + "At"
+                    + UTCTime.ToUniversalTime().ToString("yyyyMMddHHmm")
+                    + category
+                    );
+                var Md5 = new MD5CryptoServiceProvider().ComputeHash(bytes);
+                string clean_md5 = Regex.Replace(Convert.ToBase64String(Md5), @"[^a-zA-Z0-9]", "")
+                    .ToLower();//always get QueryString as lower letter for unknown reason
+                if (key != clean_md5)
+                {
+                    throw new HttpException(404, "Your key is expired. Please visit this page from Uxtrata Core again");
+                }
+
+            }
+
+            if (id == null || id < 1)
 				return RedirectToAction("Index", "Home");
 
 			PageViewModel model = PageService.GetById(id.Value, true);
+
+            if (!Context.IsAdmin)
+            {
+                bool restrict_page = false;
+                bool user_have_access = false;
+                foreach (var tag in model.Tags)
+                {
+                    if (tag.StartsWith("#"))
+                    {
+                        restrict_page = true;
+                        if (tag.Replace("#", "").ToLower() == Context.CurrentUsername.ToLower())
+                        {
+                            user_have_access = true;
+                        }
+                    }
+                }
+                if (restrict_page && !user_have_access)
+                {
+                    throw new HttpException(404, "The page could not be found");
+                }
+            }
 
 			if (model == null)
 				throw new HttpException(404, string.Format("The page with id '{0}' could not be found", id));
@@ -47,7 +101,26 @@ namespace Roadkill.Core.Mvc.Controllers
 			return View(model);
 		}
 
-		public ActionResult PageToolbar(int? id)
+
+        public static DateTime GetLocalTimeFromGoogle()
+        {
+            DateTime dateTime = DateTime.MinValue;
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://www.google.com/");
+            request.Method = "GET";
+            request.Accept = "text/html, application/xhtml+xml, */*";
+            request.UserAgent = "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore); //No caching
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                DateTime.TryParse(response.GetResponseHeader("DATE"), out dateTime);
+            }
+            return dateTime;
+        }
+
+        public ActionResult PageToolbar(int? id)
 		{
 			if (id == null || id < 1)
 				return Content("");

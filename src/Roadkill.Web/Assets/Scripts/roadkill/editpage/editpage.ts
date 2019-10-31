@@ -6,7 +6,7 @@ module Roadkill.Web
 		private _timeout: any = null;
 		private _tagBlackList: string[] = 
 		[
-			"#", ",", ";", "/", "?", ":", "@", "&", "=", "{", "}", "|", "\\", "^", "[", "]", "`"	
+			",", ";", "/", "?", ":", "@", "&", "=", "{", "}", "|", "\\", "^", "[", "]", "`"	
 		];
 
 		constructor(tags : string[])

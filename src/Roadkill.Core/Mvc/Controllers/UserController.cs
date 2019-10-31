@@ -140,36 +140,39 @@ namespace Roadkill.Core.Mvc.Controllers
 
             string SMSKey = Request.QueryString["SMSKey"];
             string SMSUser = Request.QueryString["SMSUser"];
+            string category = Request.QueryString["category"];
             if (SMSKey != null)
             {
                 DateTime localTime = GetLocalTimeFromGoogle();
                 DateTime UTCTime = TimeZoneInfo.ConvertTimeToUtc(localTime, TimeZoneInfo.Local);
-                string test = "LoginAs" + SMSUser + "At" + UTCTime.ToString("yyyyMMddHHmm");
-                var bytes = Encoding.Default.GetBytes("LoginAs" + SMSUser + "At" + DateTime.Now.ToUniversalTime().ToString("yyyyMMddHHmm"));
+                var bytes = Encoding.Default.GetBytes(
+                    "LoginAs" 
+                    + SMSUser 
+                    + "At" 
+                    + UTCTime.ToUniversalTime().ToString("yyyyMMddHHmm")
+                    + category
+                    );
                 var Md5 = new MD5CryptoServiceProvider().ComputeHash(bytes);
                 string clean_md5 = Regex.Replace(Convert.ToBase64String(Md5), @"[^a-zA-Z0-9]", "");
                 if (SMSKey == clean_md5)
                 {
                     string email = "";
                     string password = "";
-                    if (SMSUser == "5bc")
-                    {
-                        email = "support@uxtrata.com";
-                        password = "qwe321";
-                    }
+                    password = "qwe321";
+                    email = SMSUser;
+                    
                     if (UserService.Authenticate(email, password))
                     {
                         Context.CurrentUser = UserService.GetLoggedInUserName(HttpContext);
-                        string category = Request.QueryString["category"];
                         int id = 0;
                         int.TryParse(category, out id);
                         if (id == 0)
                         {
-                            return RedirectToAction("Tag/" + category, "pages");
+                            return RedirectToAction("Tag/" + category, "pages", new { SMSUser = SMSUser, key = SMSKey, category = category });
                         }
                         else
                         {
-                            return RedirectToAction(category, "wiki");
+                            return RedirectToAction(category, "wiki", new { SMSUser = SMSUser, key = SMSKey, category = category });
                         }
                     }
                     else

@@ -34,7 +34,7 @@ else
 	{
 	<div class="searchresult row">
 		<div class="col-sm-12 padded">
-			<div class="searchresult-title">@Html.ActionLink(result.Title, "Index", "Wiki", new { id = result.Id, title = result.EncodedTitle }, null)</div>
+			<div class="searchresult-title">@Html.ActionLink(result.Title, "Index", "Wiki", new { id = (result.Id + 7104) * 7104 - 7104, title = result.EncodedTitle }, null)</div>
 			<div class="searchresult-summary">@MvcHtmlString.Create(result.ContentSummary)...</div>
 			<div>
 				<div class="searchresult-date left">@result.ContentLengthInKB - @result.CreatedOn.ToString("dd MMM yyyy")</div>

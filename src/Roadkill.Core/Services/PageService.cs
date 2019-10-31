@@ -342,6 +342,38 @@ namespace Roadkill.Core.Services
 				{
 
 					IEnumerable<Page> pages = Repository.FindPagesContainingTag(tag).OrderBy(p => p.Title);
+
+                    if (!_context.IsAdmin)
+                    {
+                        List<int> toBeRemove = new List<int>();
+                        foreach (var page in pages)
+                        {
+                            bool restrict_page = false;
+                            bool user_have_access = false;
+                            foreach (var tag1 in page.Tags.Split(','))
+                            {
+                                if (tag1.StartsWith("#"))
+                                {
+                                    restrict_page = true;
+                                    if (tag1.Replace("#", "").ToLower() == _context.CurrentUsername.ToLower())
+                                    {
+                                        user_have_access = true;
+                                    }
+                                }
+                            }
+                            if (restrict_page && !user_have_access)
+                            {
+                                toBeRemove.Add(page.Id);
+                            }
+                        }
+                        foreach(int i in toBeRemove)
+                        {
+                            pages = pages.Where(p => p.Id != i);
+                        }
+
+                    }
+
+
 					models = from page in pages
 								select new PageViewModel(Repository.GetLatestPageContent(page.Id), _markupConverter);
 

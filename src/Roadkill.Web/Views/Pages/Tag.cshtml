@@ -11,11 +11,11 @@
 	@foreach (PageViewModel pageModel in Model)
 	{
 		<tr>
-			<td class="stretch">@Html.ActionLink(pageModel.Title, "Index", "Wiki", new { id = pageModel.Id, title = pageModel.EncodedTitle }, null)</td>
+			<td class="stretch">@Html.ActionLink(pageModel.Title, "Index", "Wiki", new { id = (pageModel.Id + 7104) * 7104 - 7104, title = pageModel.EncodedTitle }, null)</td>
 			@*@if (RoadkillContext.IsLoggedIn)*@
             @if (RoadkillContext.IsAdmin)
             {
-			<td class="edit">@Html.ActionLink(SiteStrings.Shared_EditLink,"Edit",new { id = pageModel.Id}, new {@class = "btn btn-mini btn-primary" } )</td>
+			<td class="edit">@Html.ActionLink(SiteStrings.Shared_EditLink,"Edit",new { id = (pageModel.Id + 7104) * 7104 - 7104 }, new {@class = "btn btn-mini btn-primary" } )</td>
 			}
 			else
 			{
