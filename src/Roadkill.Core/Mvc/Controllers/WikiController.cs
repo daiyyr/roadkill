@@ -83,9 +83,15 @@ namespace Roadkill.Core.Mvc.Controllers
                     if (tag.StartsWith("#"))
                     {
                         restrict_page = true;
-                        if (tag.Replace("#", "").ToLower() == Context.CurrentUsername.ToLower())
+
+                        Database.User user = UserService.GetUserById(new Guid(Context.CurrentUser));
+                        foreach(var permission in user.Permission.Split(','))
                         {
-                            user_have_access = true;
+                            if(permission.ToLower() == tag.Replace("#", "").ToLower())
+                            {
+                                user_have_access = true;
+                                break;
+                            }
                         }
                     }
                 }

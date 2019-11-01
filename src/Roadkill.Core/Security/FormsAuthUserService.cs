@@ -523,6 +523,9 @@ namespace Roadkill.Core.Security
 				// Update the profile details
 				user.Firstname = model.Firstname;
 				user.Lastname = model.Lastname;
+                user.Permission = model.Permission;
+
+
 				Repository.SaveOrUpdateUser(user);
 
 				// Save the email

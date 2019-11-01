@@ -25,8 +25,9 @@ namespace Roadkill.Core.Database.LightSpeed
 			entity.Password = user.Password;
 			entity.PasswordResetKey = user.PasswordResetKey;
 			entity.Salt = user.Salt;
-			entity.Username = user.Username;
-		}
+            entity.Username = user.Username;
+            entity.Permission = user.Permission;
+        }
 
 		public static void FromPage(Page page, PageEntity entity)
 		{

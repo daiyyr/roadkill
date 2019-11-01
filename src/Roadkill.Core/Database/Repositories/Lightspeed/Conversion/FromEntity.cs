@@ -67,6 +67,7 @@ namespace Roadkill.Core.Database.LightSpeed
 			user.PasswordResetKey = entity.PasswordResetKey;
 			user.Username = entity.Username;
 			user.Salt = entity.Salt;
+            user.Permission = entity.Permission;
 
 			return user;
 		}

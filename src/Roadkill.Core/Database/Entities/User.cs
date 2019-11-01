@@ -110,6 +110,13 @@ namespace Roadkill.Core.Database
 			set { Id = value; }
 		}
 
+        /// <summary>
+		/// User permissions for Wikis that locked by '#' Tag, splited by ','.   
+        /// For example, an user with Permission 'discount,edms' can access a wiki with '#edms' Tag, but cannot access a Wiki with '#somethingelse' Tag
+		/// </summary>
+        public string Permission { get; set; }
+
+
 		/// <summary>
 		/// Encrypts and sets the password for the user.
 		/// </summary>

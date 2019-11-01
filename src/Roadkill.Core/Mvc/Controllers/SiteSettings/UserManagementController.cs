@@ -142,7 +142,8 @@ namespace Roadkill.Core.Mvc.Controllers
 		{
 			if (ModelState.IsValid)
 			{
-				if (model.UsernameHasChanged || model.EmailHasChanged)
+
+               // if (model.UsernameHasChanged || model.EmailHasChanged)
 				{
 					if (!UserService.UpdateUser(model))
 					{

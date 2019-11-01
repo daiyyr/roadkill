@@ -32,13 +32,19 @@ namespace Roadkill.Core.Services
 		private static readonly LuceneVersion LUCENEVERSION = LuceneVersion.LUCENE_29;
         private IUserContext _context;
 
-        public SearchService(ApplicationSettings settings, IRepository repository, IPluginFactory pluginFactory, IUserContext context)
+        private Security.UserServiceBase _UserService;
+
+        public SearchService(ApplicationSettings settings, IRepository repository, IPluginFactory pluginFactory, IUserContext context
+            , Security.UserServiceBase UserService
+            )
 			: base(settings, repository)
 		{
             _context = context;
             _markupConverter = new MarkupConverter(settings, repository, pluginFactory);
 			IndexPath = settings.SearchIndexPath;
-		}
+
+            _UserService = UserService;
+        }
 
 		/// <summary>
 		/// Searches the lucene index with the search text.
@@ -111,10 +117,22 @@ namespace Roadkill.Core.Services
                         if (tag1.StartsWith("#"))
                         {
                             restrict_page = true;
+
+                            Database.User user = _UserService.GetUserById(new Guid(_context.CurrentUser));
+                            foreach (var permission in user.Permission.Split(','))
+                            {
+                                if (permission.ToLower() == tag1.Replace("#", "").ToLower())
+                                {
+                                    user_have_access = true;
+                                    break;
+                                }
+                            }
+                            /*
                             if (tag1.Replace("#", "").ToLower() == _context.CurrentUsername.ToLower())
                             {
                                 user_have_access = true;
                             }
+                            */
                         }
                     }
                     if (restrict_page && !user_have_access)

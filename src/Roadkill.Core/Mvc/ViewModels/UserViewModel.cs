@@ -33,6 +33,8 @@ namespace Roadkill.Core.Mvc.ViewModels
 		/// The firstname of the user.
 		/// </summary>
 		public string Firstname { get; set; }
+
+        public string Permission { get; set; }
 		
 		/// <summary>
 		/// The last name of the user.
@@ -135,6 +137,7 @@ namespace Roadkill.Core.Mvc.ViewModels
 			Firstname = user.Firstname;
 			Lastname = user.Lastname;
 			PasswordResetKey = user.PasswordResetKey;
+            Permission = user.Permission;
 		}
 
 		/// <summary>
@@ -202,11 +205,12 @@ namespace Roadkill.Core.Mvc.ViewModels
 		public static ValidationResult VerifyNewEmail(UserViewModel user, ValidationContext context)
 		{
 			// Only check if it's a new user, OR the email has changed
-			if (!user.NewEmail.Contains("@"))
-			{
-				return new ValidationResult(SiteStrings.User_Validation_Email_Check);
-			}
-			else
+			//if (!user.NewEmail.Contains("@"))
+			//{
+			//	return new ValidationResult(SiteStrings.User_Validation_Email_Check);
+			//}
+			//else
+
 			{
 				return ValidationResult.Success;
 			}

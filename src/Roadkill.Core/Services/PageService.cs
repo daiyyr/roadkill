@@ -31,9 +31,13 @@ namespace Roadkill.Core.Services
 		private IPluginFactory _pluginFactory;
 		private MarkupLinkUpdater _markupLinkUpdater;
 
-		public PageService(ApplicationSettings settings, IRepository repository, SearchService searchService, 
+        private Security.UserServiceBase _UserService;
+
+        public PageService(ApplicationSettings settings, IRepository repository, SearchService searchService, 
 			PageHistoryService historyService, IUserContext context, 
-			ListCache listCache, PageViewModelCache pageViewModelCache, SiteCache sitecache, IPluginFactory pluginFactory)
+			ListCache listCache, PageViewModelCache pageViewModelCache, SiteCache sitecache, IPluginFactory pluginFactory
+            , Security.UserServiceBase UserService
+            )
 			: base(settings, repository)
 		{
 			_searchService = searchService;
@@ -45,7 +49,10 @@ namespace Roadkill.Core.Services
 			_siteCache = sitecache;
 			_pluginFactory = pluginFactory;
 			_markupLinkUpdater = new MarkupLinkUpdater(_markupConverter.Parser);
-		}
+
+            _UserService = UserService;
+
+        }
 
 		/// <summary>
 		/// Adds the page to the database.
@@ -338,10 +345,11 @@ namespace Roadkill.Core.Services
 				string cacheKey = string.Format("pagesbytag.{0}", tag);
 
 				IEnumerable<PageViewModel> models = _listCache.Get<PageViewModel>(cacheKey);
-				if (models == null)
-				{
+                //	if (models == null)
+                //do not use cache here, so admin setting user permission will become effective immediately
+                {
 
-					IEnumerable<Page> pages = Repository.FindPagesContainingTag(tag).OrderBy(p => p.Title);
+                    IEnumerable<Page> pages = Repository.FindPagesContainingTag(tag).OrderBy(p => p.Title);
 
                     if (!_context.IsAdmin)
                     {
@@ -355,9 +363,15 @@ namespace Roadkill.Core.Services
                                 if (tag1.StartsWith("#"))
                                 {
                                     restrict_page = true;
-                                    if (tag1.Replace("#", "").ToLower() == _context.CurrentUsername.ToLower())
+
+                                    Database.User user = _UserService.GetUserById(new Guid(_context.CurrentUser));
+                                    foreach (var permission in user.Permission.Split(','))
                                     {
-                                        user_have_access = true;
+                                        if (permission.ToLower() == tag1.Replace("#", "").ToLower())
+                                        {
+                                            user_have_access = true;
+                                            break;
+                                        }
                                     }
                                 }
                             }

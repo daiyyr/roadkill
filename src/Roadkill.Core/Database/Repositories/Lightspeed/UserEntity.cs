@@ -39,8 +39,11 @@ namespace Roadkill.Core.Database.LightSpeed
 
 		[Column("passwordresetkey")]
 		private string _passwordResetKey;
+        
+        [Column("Permission")]
+        private string _Permission;
 
-		public string Username
+        public string Username
 		{
 			get
 			{
@@ -52,7 +55,19 @@ namespace Roadkill.Core.Database.LightSpeed
 			}
 		}
 
-		public string Email
+        public string Permission
+        {
+            get
+            {
+                return _Permission;
+            }
+            set
+            {
+                Set<string>(ref _Permission, value);
+            }
+        }
+
+        public string Email
 		{
 			get
 			{

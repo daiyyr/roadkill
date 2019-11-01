@@ -36,30 +36,35 @@
 		@(Html.HiddenFor<UserViewModel, string>(x => x.ExistingEmail))
 		@(Html.HiddenFor<UserViewModel, string>(x => x.ExistingUsername))
 
-		<fieldset>
-			<div class="form-group">
-				<label for="NewUsername">@SiteStrings.Shared_Username_Label</label>
-				@Html.BootstrapTextBoxFor(s => s.NewUsername, SiteStrings.SiteSettings_UserManagement_AddUser_Help)
-			</div>
+        <fieldset>
+            <div class="form-group">
+                <label for="NewUsername">@SiteStrings.Shared_Username_Label</label>
+                @Html.BootstrapTextBoxFor(s => s.NewUsername, SiteStrings.SiteSettings_UserManagement_AddUser_Help)
+            </div>
 
-			<div class="form-group">
-				<label for="NewEmail">@SiteStrings.Shared_Email_Label</label>
-				@Html.BootstrapTextBoxFor(s => s.NewEmail, SiteStrings.Shared_Email_Label)
-			</div>
+            <div class="form-group">
+                <label for="NewEmail">@SiteStrings.Shared_Email_Label</label>
+                @Html.BootstrapTextBoxFor(s => s.NewEmail, SiteStrings.Shared_Email_Label)
+            </div>
 
-			<div class="form-group">
-				<label for="Password">@SiteStrings.Shared_Password_Label</label>
-				@Html.BootstrapPasswordFor(s => s.Password, SiteStrings.Shared_Password_Label)
-			</div>
+            <div class="form-group">
+                <label for="Permission">Permission</label>
+                @Html.BootstrapTextBoxFor(s => s.Permission, "Permission")
+            </div>
 
-			<div class="form-group">
-				<label for="PasswordConfirmation">@SiteStrings.Shared_PasswordConfirm_Label</label>
-				@Html.BootstrapPasswordFor(s => s.PasswordConfirmation, SiteStrings.Shared_PasswordConfirm_Label)
-			</div>
+            <div class="form-group">
+                <label for="Password">@SiteStrings.Shared_Password_Label</label>
+                @Html.BootstrapPasswordFor(s => s.Password, SiteStrings.Shared_Password_Label)
+            </div>
 
-			<div class="form-group">
-				<input type="submit" value="@SiteStrings.Button_Save" class="btn btn-primary right" />
-			</div>
-		</fieldset>
+            <div class="form-group">
+                <label for="PasswordConfirmation">@SiteStrings.Shared_PasswordConfirm_Label</label>
+                @Html.BootstrapPasswordFor(s => s.PasswordConfirmation, SiteStrings.Shared_PasswordConfirm_Label)
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="@SiteStrings.Button_Save" class="btn btn-primary right" />
+            </div>
+        </fieldset>
 	</form>
 </div>
